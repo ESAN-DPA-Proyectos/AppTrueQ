@@ -1,15 +1,104 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ==========================================
+# Android Studio / Kotlin Project .gitignore
+# Proyecto: AppTrueQ (DSM 2025-02)
+# ==========================================
+
+# --- Archivos de compilación y dependencias ---
+.gradle/
+build/
+**/build/
+captures/
+output.json
+
+# --- Configuraciones locales ---
 local.properties
+*.keystore
+*.jks
+*.pem
+
+# --- Archivos del IDE (Android Studio / IntelliJ) ---
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Si deseas conservar solo configuraciones compartidas:
+# .idea/*
+# !.idea/codeStyles/
+# !.idea/runConfigurations/
+
+# --- Archivos del sistema operativo ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# --- Archivos de entorno / usuario ---
+.vscode/
+*.swp
+*.swo
+
+# --- NDK / CMake ---
+.cxx/
+.externalNativeBuild/
+
+# --- Gradle Wrapper ---
+!gradle/wrapper/gradle-wrapper.jar
+gradlew
+gradlew.bat
+
+# --- Archivos generados por compilación ---
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.tmp
+
+# --- Log y reportes ---
+*.log
+*.trace
+*.hprof
+
+# --- Configuraciones de lint / cache ---
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+lint-report.html
+
+# --- Configuración del emulador / dispositivos ---
+*.avd/
+*.ini
+*.lock
+
+# --- Archivos temporales ---
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf/
+.idea/**/gradle.xml
+.idea/**/libraries/
+.idea/**/modules.xml
+.idea/**/navEditor.xml
+.idea/**/assetWizardSettings.xml
+
+# --- Configuración de versiones ---
+.version/
+*.bak
+*.old
+
+# --- Archivos específicos de Jetpack Compose preview cache ---
+compose-cache/
+compose-metrics/
+
+# --- Repositorios y librerías descargadas ---
+*.aar
+*.aapt
+*.aar.txt
+*.aar.metadata
