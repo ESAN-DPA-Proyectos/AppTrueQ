@@ -102,3 +102,10 @@ compose-metrics/
 *.aapt
 *.aar.txt
 *.aar.metadata
+
+# --- Backups automáticos que a veces aparecen en sistemas ---
+*~  # archivos terminados en ~ (backups de editores)
+
+# --- MAC ---
+.idea/.name
+
