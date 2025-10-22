@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
+import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.ui.theme.AppTrueQTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,7 +20,8 @@ class MainActivity : ComponentActivity() {
             AppTrueQTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LoginScreen(Modifier.padding(innerPadding))
-                }
+                    RegisterScreen(Modifier.padding(innerPadding))
+                 }
             }
         }
     }
