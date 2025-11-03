@@ -35,7 +35,7 @@ fun ExploreScreen() {
         modifier = Modifier.fillMaxSize()
     ) {
         Spacer(modifier = Modifier.padding(12.dp))
-        Text(text = "Explorar Ofertas", modifier = Modifier.padding(16.dp),
+        Text(text = "Explorar Ofertas y Necesidades", modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.titleLarge)
 
         TabRow(selectedTabIndex = selectedTab) {
