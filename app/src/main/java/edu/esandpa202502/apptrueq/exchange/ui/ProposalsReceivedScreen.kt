@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-data class Proposal(
+data class Propuesta(
     val id: Int,
     val from: String,
     val offer: String,
@@ -31,8 +31,12 @@ data class Proposal(
 @Composable
 fun ProposalsReceivedScreen() {
     val proposals = listOf(
-        Proposal(1, "Juan Rodriguez", "Ofrezco Laptop y Computadoras", "Te ofrezco Laptop Apple i9", "25/09/2025 -- 10:25 am", "Pendiente", android.R.drawable.ic_dialog_info),
-        Proposal(2, "Marilyn Paira", "Libros de programación", "Necesito libro Phyton 3.07", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info)
+        Propuesta(1, "Juan Rodriguez", "Ofrezco Laptop y Computadoras", "Te ofrezco Laptop Apple i9", "25/09/2025 -- 10:25 am", "Pendiente", android.R.drawable.ic_dialog_info),
+        Propuesta(2, "Marilyn Paira", "Libros de programación", "Necesito libro Phyton 3.07", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info),
+        Propuesta(3, "Raul Garcia", "Ofrezco bicicleta", "Intercambio por play Station 5", "27/07/2025 -- 10:17 am", "Pendiente", android.R.drawable.ic_dialog_info),
+        Propuesta(4, "Abigail Gutierrez", "Necesito TV 35 pulg", "Necesito TV 35 pulg plasma", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info),
+        Propuesta(5, "Alex Quispe", "Intercambio Moto", "Moto 2022", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info)
+
     )
 
     var showDialog by remember { mutableStateOf(false) }
@@ -58,9 +62,9 @@ fun ProposalsReceivedScreen() {
                 .padding(16.dp)
         ) {
             items(proposals) { proposal ->
-                ProposalCard(
-                    proposal = proposal,
-                    onAcceptClick = {
+                        ProposalCard(
+                            proposal = proposal,
+                            onAcceptClick = {
                         selectedProposalId = proposal.id
                         actionToConfirm = "accept"
                         showDialog = true
@@ -98,10 +102,10 @@ fun ProposalsReceivedScreen() {
 }
 
 @Composable
-fun ProposalCard(proposal: Proposal, onAcceptClick: () -> Unit, onRejectClick: () -> Unit) {
+fun ProposalCard(proposal: Propuesta, onAcceptClick: () -> Unit, onRejectClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
