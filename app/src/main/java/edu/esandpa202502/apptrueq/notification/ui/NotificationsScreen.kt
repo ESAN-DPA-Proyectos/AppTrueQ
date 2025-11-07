@@ -14,12 +14,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-// Importaciones explícitas y correctas para los íconos, incluyendo los extendidos
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +35,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-/**
- * Clase de datos para representar una Notificación.
- */
 data class Notificacion(
     val id: String,
     val tipo: String,
@@ -42,12 +47,11 @@ data class Notificacion(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen() {
-
     val listaDeNotificaciones = listOf(
         Notificacion("1", "propuesta_recibida", "Nueva propuesta recibida", "Carlos Enrique esta interesado en tu publicacion de Clases de ...", "Hace 4 horas", Icons.Default.Email),
         Notificacion("2", "propuesta_aceptada", "Propuesta aceptada!", "Ana Lopez acepto tu propuesta para diseño web", "Hace 8 horas", Icons.Default.CheckCircle),
-        Notificacion("3", "recordatorio", "Recordatorio de encuentro", "Tu intercambio con Roberto Carlos es mañana a las 3:00 pm", "Hace 10 horas", Icons.Default.Schedule), // Ahora sí encontrará este ícono
-        Notificacion("4", "propuesta_rechazada", "Propuesta rechazada", "Tu propuesta para Laptop Dell no fue aceptada", "Hace 17 horas", Icons.Default.Cancel) // y este también
+        Notificacion("3", "recordatorio", "Recordatorio de encuentro", "Tu intercambio con Roberto Carlos es mañana a las 3:00 pm", "Hace 10 horas", Icons.Default.Schedule),
+        Notificacion("4", "propuesta_rechazada", "Propuesta rechazada", "Tu propuesta para Laptop Dell no fue aceptada", "Hace 17 horas", Icons.Default.Cancel)
     )
 
     Scaffold(
