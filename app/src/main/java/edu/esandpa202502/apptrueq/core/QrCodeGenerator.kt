@@ -33,7 +33,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 
 @Composable
-fun QrCodeGenerator(publicationId: String, viewModel: PublicationViewModel) {
+fun QrCodeGenerator(publicationId: String, viewModel: PublicationViewModel, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val qrContent = "trueq.app/pub/$publicationId"
     val qrCodeBitmap = remember(qrContent) {
@@ -41,7 +41,6 @@ fun QrCodeGenerator(publicationId: String, viewModel: PublicationViewModel) {
     }
 
     // El Ojo que Todo lo Ve: Registra la generación del QR.
-    // Este efecto se ejecuta solo una vez cuando el Sello QR aparece en pantalla.
     LaunchedEffect(key1 = publicationId) {
         viewModel.trackQrCodeGeneration(publicationId)
     }
@@ -70,6 +69,10 @@ fun QrCodeGenerator(publicationId: String, viewModel: PublicationViewModel) {
             qrCodeBitmap?.let { shareQrCode(context, it, publicationId) }
         }) {
             Text(text = "Compartir")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onDismiss) {
+            Text(text = "Volver")
         }
     }
 }

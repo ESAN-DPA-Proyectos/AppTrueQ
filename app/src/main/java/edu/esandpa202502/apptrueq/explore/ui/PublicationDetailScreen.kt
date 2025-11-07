@@ -7,9 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,42 +26,67 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import edu.esandpa202502.apptrueq.core.QrCodeGenerator
 import edu.esandpa202502.apptrueq.publication.viewmodel.PublicationViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicationDetailScreen(
     publicationId: String,
+    navController: NavController,
     publicationViewModel: PublicationViewModel = viewModel()
 ) {
     var showProposalForm by remember { mutableStateOf(false) }
     var showQrGenerator by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        when {
-            showProposalForm -> {
-                ProposalForm(publicationId = publicationId) {
-                    showProposalForm = false
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Detalle de Publicación") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
                 }
-            }
-            showQrGenerator -> {
-                QrCodeGenerator(publicationId = publicationId, viewModel = publicationViewModel)
-            }
-            else -> {
-                Text(text = "Detalle de la Publicación: $publicationId")
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { showProposalForm = true }) {
-                    Text(text = "Enviar propuesta")
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            when {
+                showProposalForm -> {
+                    ProposalForm(publicationId = publicationId) {
+                        showProposalForm = false
+                    }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { showQrGenerator = true }) {
-                    Text(text = "Compartir por QR")
+                showQrGenerator -> {
+                    QrCodeGenerator(
+                        publicationId = publicationId,
+                        viewModel = publicationViewModel
+                    ) {
+                        showQrGenerator = false
+                    }
+                }
+                else -> {
+                    Text(text = "Detalle de la Publicación: $publicationId")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { showProposalForm = true }) {
+                        Text(text = "Enviar propuesta")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { showQrGenerator = true }) {
+                        Text(text = "Compartir por QR")
+                    }
                 }
             }
         }

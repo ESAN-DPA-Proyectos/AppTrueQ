@@ -22,7 +22,7 @@ fun NavGraph() {
             arguments = listOf(navArgument("publicationId") { type = NavType.StringType })
         ) { backStackEntry ->
             val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
-            PublicationDetailScreen(publicationId = publicationId)
+            PublicationDetailScreen(publicationId = publicationId, navController = navController)
         }
     }
 }
