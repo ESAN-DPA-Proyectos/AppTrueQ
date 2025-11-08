@@ -6,17 +6,15 @@ plugins {
 
 android {
     namespace = "edu.esandpa202502.apptrueq"
-    // ACTUALIZAMOS a la versión de SDK que requieren las dependencias
+    // Actualizamos a la versión de SDK que requieren las dependencias
     compileSdk = 36
 
     defaultConfig {
         applicationId = "edu.esandpa202502.apptrueq"
         minSdk = 33
-        // ACTUALIZAMOS también el targetSdk
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,19 +27,23 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
+    // --- Dependencias base ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -51,17 +53,17 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.navigation.compose)
 
     // --- Jetpack Navigation y ViewModel ---
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
-    // --- Librerías adicionales del proyecto base (main) ---
+    // --- Librerías adicionales del proyecto base ---
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("com.google.zxing:core:3.5.2")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
+    // --- Dependencias de prueba ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
