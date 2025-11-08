@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "edu.esandpa202502.apptrueq"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "edu.esandpa202502.apptrueq"
@@ -16,7 +14,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,19 +26,23 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
+    // --- Dependencias base ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -50,19 +51,18 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
- 
-    // Librerías adicionales de esta HU
+
+    // --- Jetpack Navigation y ViewModel ---
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+
+    // --- Librerías adicionales del proyecto base (main) ---
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("com.google.zxing:core:3.5.2")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    
-    // Catálogo centralizado de dependencias
-    // Añadimos la librería de íconos extendidos usando la referencia del catálogo
     implementation(libs.androidx.compose.material.icons.extended)
-    // Añadimos Navigation Compose usando la referencia del catálogo
-    implementation(libs.androidx.navigation.compose)
-    
+
+    // --- Dependencias de prueba ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
