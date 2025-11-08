@@ -6,6 +6,7 @@ plugins {
 
 android {
     namespace = "edu.esandpa202502.apptrueq"
+    // Actualizamos a la versión de SDK que requieren las dependencias
     compileSdk = 36
 
     defaultConfig {
@@ -51,16 +52,16 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // --- Jetpack Navigation y ViewModel ---
     implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
 
-    // --- Librerías adicionales del proyecto base (main) ---
+    // --- Librerías adicionales del proyecto base ---
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("com.google.zxing:core:3.5.2")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation(libs.androidx.compose.material.icons.extended)
 
     // --- Dependencias de prueba ---
     testImplementation(libs.junit)
