@@ -37,6 +37,6 @@ sealed class Routes(val route: String) {
     }
 
     // --- MÓDULO DE OFERTAS (HU-03) ---
-    object Offers : Routes("offers")
-    object OfferForm : Routes("offerForm")
+    object Offer : Routes("offer") // Pantalla principal de Ofertas (tabs)
+    object OfferForm : Routes("offerForm") // Pantalla de formulario de oferta
 }

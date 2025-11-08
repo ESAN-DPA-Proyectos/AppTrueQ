@@ -18,37 +18,40 @@ import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
-import edu.esandpa202502.apptrueq.offer.ui.OfferListScreen
-import edu.esandpa202502.apptrueq.offer.ui.OfferFormScreen
+
+// --- Módulo de Ofertas (HU-03) ---
+import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 
 /**
  * Gráfico de navegación principal de la aplicación TrueQ.
- * HU integradas: HU-03 (Ofertas), HU-08 (Notificaciones), HU-12 (Reportes), etc.
+ * HU integradas:
+ *  - HU-03 (Ofertas)
+ *  - HU-08 (Notificaciones)
+ *  - HU-12 (Reportes)
+ *  - HU-13 (QR)
  */
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Dashboard.route // Pantalla inicial: Dashboard
+        startDestination = Routes.Dashboard.route // Pantalla inicial
     ) {
-        // --- PANTALLAS PRINCIPALES ---
+
+        // --- DASHBOARD ---
         composable(Routes.Dashboard.route) {
             DashboardScreen(navController = navController)
         }
 
-        composable(Routes.Explore.route) {
-            ExploreScreen(navController = navController)
-        }
-
+        // --- AUTENTICACIÓN ---
         composable(Routes.Login.route) {
             LoginScreen(navController = navController)
         }
 
-        composable(Routes.Profile.route) {
-            // ProfileScreen(navController = navController)
+        // --- EXPLORAR PUBLICACIONES ---
+        composable(Routes.Explore.route) {
+            ExploreScreen(navController = navController)
         }
 
-        // --- DETALLE DE PUBLICACIONES ---
         composable(
             route = Routes.PublicationDetail.route,
             arguments = listOf(navArgument("publicationId") { type = NavType.StringType })
@@ -60,27 +63,26 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // --- MÓDULO EXCHANGE ---
+        // --- HISTORIAL DE INTERCAMBIOS ---
         composable(route = Routes.TradeHistory.route) {
             TradeHistoryScreen(navController = navController)
         }
 
+        // --- PROPUESTAS RECIBIDAS ---
         composable(route = Routes.Proposals_received.route) {
             ProposalsReceivedScreen()
         }
 
+        // --- DETALLE DE INTERCAMBIO ---
         composable(
             route = Routes.TradeDetail.route,
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            TradeDetailScreen(
-                tradeId = tradeId,
-                onNavigateBack = { navController.popBackStack() }
-            )
+            TradeDetailScreen(tradeId = tradeId)
         }
 
-        // --- MÓDULO NOTIFICATIONS ---
+        // --- NOTIFICACIONES ---
         composable(Routes.Notifications.route) {
             NotificationsScreen(navController = navController)
         }
@@ -96,18 +98,14 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // --- MÓDULO REPORT ---
+        // --- REPORTAR USUARIO ---
         composable(Routes.Report_user.route) {
             ReportUserScreen()
         }
 
-        // --- MÓDULO OFFER (HU-03) ---
-        composable(Routes.Offers.route) {
-            OfferListScreen(navController)
-        }
-
-        composable(Routes.OfferForm.route) {
-            OfferFormScreen(onBack = { navController.popBackStack() })
+        // --- MÓDULO HU-03: OFERTAS ---
+        composable(Routes.Offer.route) {
+            OfferScreen(vm = null) // si tu OfferScreen tiene un ViewModel interno, no pases nada
         }
     }
 }
