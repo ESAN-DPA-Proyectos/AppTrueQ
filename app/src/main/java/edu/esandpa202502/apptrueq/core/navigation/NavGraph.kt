@@ -6,72 +6,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
-import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.exchange.ui.ProposalsReceivedScreen
-import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
-import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
-import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
-import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
-import edu.esandpa202502.apptrueq.offer.ui.OfferListScreen
-import edu.esandpa202502.apptrueq.offer.ui.OfferFormScreen
+import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
+import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen  // <-- nuevo import
 
-/**
- * Gráfico de navegación principal de la aplicación TrueQ.
- * Incluye pantallas base del proyecto y HU-03 (Ofertas).
- */
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Explore.route // Pantalla inicial
+        startDestination = Routes.Offer.route
     ) {
-        // 🔹 Módulo Explore
-        composable(Routes.Explore.route) {
-            ExploreScreen(navController = navController)
+        composable(Routes.Offer.route) {
+            OfferScreen()
         }
+
+        // 🔧 Stub para que ExploreScreen pueda navegar sin romper la app
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("publicationId") { type = NavType.StringType })
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { backStackEntry ->
-            val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
-            PublicationDetailScreen(publicationId = publicationId, navController = navController)
-        }
-
-        // 🔹 Módulo Exchange
-        composable(route = "trade_history") {
-            TradeHistoryScreen(navController = navController)
-        }
-        composable(route = "proposals_received") {
-            ProposalsReceivedScreen()
-        }
-        composable(
-            route = "trade_detail/{tradeId}",
-            arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            TradeDetailScreen(
-                tradeId = tradeId,
-                onNavigateBack = { navController.popBackStack() }
+            val id = backStackEntry.arguments?.getInt("id") ?: -1
+            PublicationDetailScreen(
+                id = id,
+                onBack = { navController.popBackStack() }
             )
-        }
-
-        // 🔹 Módulo Notifications
-        composable(route = "notifications") {
-            NotificationsScreen()
-        }
-
-        // 🔹 Módulo Report
-        composable(route = "report_user") {
-            ReportUserScreen()
-        }
-
-        // 🔹 HU-03: Módulo Offer (tu rama)
-        composable("offers") {
-            OfferListScreen(navController)
-        }
-        composable("offerForm") {
-            OfferFormScreen(onBack = { navController.popBackStack() })
         }
     }
 }

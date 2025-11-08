@@ -6,10 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import edu.esandpa202502.apptrueq.core.navigation.AppNavGraph
+import edu.esandpa202502.apptrueq.core.navigation.NavGraph
 import edu.esandpa202502.apptrueq.ui.theme.AppTrueQTheme
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +26,7 @@ class MainActivity : ComponentActivity() {
                     // Crear el controlador de navegación
                     val navController = rememberNavController()
                     // Llamar al gráfico de navegación
-                    AppNavGraph(navController = navController)
+                    NavGraph(navController = navController)
                 }
             }
         }
