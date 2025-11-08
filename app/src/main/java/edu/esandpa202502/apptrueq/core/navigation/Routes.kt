@@ -3,6 +3,9 @@ package edu.esandpa202502.apptrueq.core.navigation
 sealed class Routes(val route: String) {
     // Ruta principal de Ofertas (pantalla con tabs)
     object Offer : Routes("offer")
+    
+    // Ruta principal de Necesidades (pantalla con tabs)
+    object Need : Routes("need")
 
     // 🔧 Stub para Explore → Detalle de publicación
     object PublicationDetail : Routes("publicationDetail/{id}") {
