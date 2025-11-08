@@ -54,10 +54,14 @@ data class Proposal(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalsReceivedScreen() {
-    val proposals = listOf(
-        Proposal(1, "Juan Rodriguez", "Ofrezco Laptop y Computadoras", "Te ofrezco Laptop Apple i9", "25/09/2025 -- 10:25 am", "Pendiente", android.R.drawable.ic_dialog_info),
-        Proposal(2, "Marilyn Paira", "Libros de programación", "Necesito libro Phyton 3.07", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info)
-    )
+    // N.º 1: La lista de propuestas ahora es un estado mutable.
+    // Esto permite que la UI reaccione cuando cambiamos el estado de una propuesta.
+    var proposals by remember {
+        mutableStateOf(listOf(
+            Proposal(1, "Juan Rodriguez", "Ofrezco Laptop y Computadoras", "Te ofrezco Laptop Apple i9", "25/09/2025 -- 10:25 am", "Pendiente", android.R.drawable.ic_dialog_info),
+            Proposal(2, "Marilyn Paira", "Libros de programación", "Necesito libro Phyton 3.07", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info)
+        ))
+    }
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedProposalId by remember { mutableStateOf<Int?>(null) }
@@ -104,7 +108,15 @@ fun ProposalsReceivedScreen() {
                 title = { Text("¿Está seguro de esta acción?") },
                 confirmButton = {
                     Button(onClick = {
-                        println("Action: ${actionToConfirm}, Proposal ID: ${selectedProposalId}")
+                        // N.º 2: Lógica para actualizar el estado de la propuesta.
+                        proposals = proposals.map {
+                            if (it.id == selectedProposalId) {
+                                // Creamos una copia de la propuesta, cambiando solo el estado.
+                                it.copy(status = if (actionToConfirm == "accept") "Aceptado" else "Rechazado")
+                            } else {
+                                it // Devolvemos las demás propuestas sin cambios.
+                            }
+                        }
                         showDialog = false
                     }) {
                         Text("SI")
@@ -153,10 +165,22 @@ fun ProposalCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = onAcceptClick, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
+                // N.º 3: Lógica de habilitación de los botones.
+                // Los botones solo estarán activos si el estado de la propuesta es "Pendiente".
+                val areButtonsEnabled = proposal.status == "Pendiente"
+
+                Button(
+                    onClick = onAcceptClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    enabled = areButtonsEnabled
+                ) {
                     Text("Aceptar", color = Color.White)
                 }
-                Button(onClick = onRejectClick, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
+                Button(
+                    onClick = onRejectClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    enabled = areButtonsEnabled
+                ) {
                     Text("Rechazar", color = Color.White)
                 }
             }
