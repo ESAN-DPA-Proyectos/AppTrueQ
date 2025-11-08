@@ -1,9 +1,13 @@
 package edu.esandpa202502.apptrueq.notification.ui
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,9 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 
-// 1. Añadimos el campo `isRead` para saber si la notificación ha sido leída.
 data class Notificacion(
     val id: String,
     val tipo: String,
@@ -49,15 +53,13 @@ data class Notificacion(
     val descripcion: String,
     val tiempo: String,
     val icono: ImageVector,
-    var isRead: Boolean = false // Por defecto, las notificaciones nuevas no están leídas
+    var isRead: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(navController: NavController) {
 
-    // --- ESTADOS ---
-    // La lista de notificaciones ahora es un estado para poder modificarla (marcar como leída)
     var notifications by remember {
         mutableStateOf(listOf(
             Notificacion("1", "propuesta_recibida", "Nueva propuesta recibida", "Carlos Enrique esta interesado...", "Hace 4 horas", Icons.Default.Email, isRead = false),
@@ -67,10 +69,8 @@ fun NotificationsScreen(navController: NavController) {
         ))
     }
     
-    // Estado para el filtro
     var showOnlyUnread by remember { mutableStateOf(false) }
     
-    // Lista que se muestra en la UI, se recalcula si el filtro o la lista original cambian
     val filteredNotifications by remember(showOnlyUnread, notifications) {
         derivedStateOf {
             if (showOnlyUnread) {
@@ -82,7 +82,21 @@ fun NotificationsScreen(navController: NavController) {
     }
 
     val unreadCount = notifications.count { !it.isRead }
-    val context = LocalContext.current // Contexto necesario para mostrar notificaciones del sistema
+    val context = LocalContext.current
+
+    // --- LÓGICA DE PERMISOS DE NOTIFICACIÓN ---
+    // 1. Preparamos el lanzador que solicitará el permiso.
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted: Boolean ->
+            if (isGranted) {
+                // Si el usuario ACEPTA el permiso, enviamos la notificación inmediatamente.
+                showSystemNotification(context, "¡Permiso Concedido!", "Ahora recibirás notificaciones.")
+            } else {
+                // Si el usuario RECHAZA, no hacemos nada. En una app real, podrías mostrar un mensaje.
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -98,15 +112,29 @@ fun NotificationsScreen(navController: NavController) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "$unreadCount sin leer", modifier = Modifier.weight(1f))
                 Button(onClick = {
-                    // --- LÓGICA DEL BOTÓN DEMO PUSH ---
-                    showSystemNotification(context, "¡Nueva Propuesta!", "Tienes una nueva oferta para tu item.")
+                    // --- LÓGICA DEL BOTÓN DEMO PUSH MEJORADA ---
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // El permiso solo es necesario en Android 13+
+                        when {
+                            // 2. Comprobamos si el permiso ya está concedido.
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED -> {
+                                // Si ya lo tenemos, simplemente enviamos la notificación.
+                                showSystemNotification(context, "¡Nueva Propuesta!", "Tienes una nueva oferta para tu item.")
+                            }
+                            // 3. Si no lo tenemos, lanzamos el diálogo de solicitud.
+                            else -> {
+                                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }
+                    } else {
+                        // En versiones antiguas de Android, no se necesita permiso.
+                        showSystemNotification(context, "¡Nueva Propuesta!", "Tienes una nueva oferta para tu item.")
+                    }
                 }) {
                     Text("Demo Push")
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- LÓGICA DE LOS FILTROS ---
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { showOnlyUnread = false }, enabled = showOnlyUnread) {
                     Text("Todas")
@@ -123,12 +151,9 @@ fun NotificationsScreen(navController: NavController) {
                     NotificationCard(
                         notificacion = notification,
                         onClick = {
-                            // --- LÓGICA DE NAVEGACIÓN Y MARCAR COMO LEÍDO ---
-                            // Buscamos la notificación en la lista original y la marcamos como leída
                             notifications = notifications.map {
                                 if (it.id == notification.id) it.copy(isRead = true) else it
                             }
-                            // Navegamos a la pantalla de detalle
                             navController.navigate("notification_detail/${notification.id}")
                         }
                     )
@@ -138,41 +163,24 @@ fun NotificationsScreen(navController: NavController) {
     }
 }
 
-/**
- * Muestra una notificación del sistema (las que aparecen en la barra de estado).
- * Esta es una implementación básica para propósitos de demostración.
- */
 fun showSystemNotification(context: Context, title: String, message: String) {
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val channelId = "default_channel_id"
 
-    // En Android 8.0 (API 26) y superior, las notificaciones deben estar en un canal.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val channel = NotificationChannel(channelId, "Default Channel", NotificationManager.IMPORTANCE_DEFAULT)
         notificationManager.createNotificationChannel(channel)
     }
 
-    // Construimos la notificación
     val notification = NotificationCompat.Builder(context, channelId)
         .setContentTitle(title)
         .setContentText(message)
-        .setSmallIcon(android.R.drawable.ic_dialog_info) // Ícono que se muestra en la barra de estado
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setAutoCancel(true) // La notificación se cierra al tocarla
+        .setAutoCancel(true)
         .build()
 
-    // Mostramos la notificación. Es importante usar un ID único para cada notificación.
     notificationManager.notify(System.currentTimeMillis().toInt(), notification)
-
-    /*
-     * NOTA IMPORTANTE PARA UNA APP REAL:
-     * 1. PERMISOS: En Android 13 (API 33) y superior, necesitas pedir el permiso POST_NOTIFICATIONS
-     *    en tu AndroidManifest.xml y solicitarlo al usuario en tiempo de ejecución.
-     *    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-     * 2. NAVEGACIÓN: Para que al tocar la notificación se abra la app, necesitas añadir
-     *    un `PendingIntent` a la notificación usando `setContentIntent()`.
-     * 3. ÍCONOS: El `smallIcon` debe ser un ícono monocromático y sin fondo.
-     */
 }
 
 @Composable
@@ -200,6 +208,5 @@ fun NotificationCard(notificacion: Notificacion, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun NotificationsScreenPreview() {
-    // Pasamos un NavController falso para que la vista previa no falle
     NotificationsScreen(navController = NavController(LocalContext.current))
 }
