@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
 import java.util.Locale
 
 data class HistorialTrueque(
@@ -58,7 +59,7 @@ fun TradeHistoryScreen(navController: NavController) {
     )
 
     // --- ESTADOS PARA LOS FILTROS ---
-    var estadoSeleccionado by remember { mutableStateOf("Todos") } 
+    var estadoSeleccionado by remember { mutableStateOf("Todos") }
     var menuEstadoExpanded by remember { mutableStateOf(false) }
     val opcionesEstado = listOf("Todos", "Aceptado", "Rechazado", "Pendiente")
 
@@ -73,12 +74,21 @@ fun TradeHistoryScreen(navController: NavController) {
             listaDeTrueques.filter { it.estado == estadoSeleccionado }
         }
 
-        // CORRECCIÓN: Se usa 'h' en lugar de 'hh' para aceptar horas con uno o dos dígitos (ej. '7' o '10').
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy - h:mm a", Locale.ENGLISH)
+        // CORRECCIÓN FINAL: Se usa un DateTimeFormatterBuilder para ignorar mayúsculas/minúsculas en "am/pm".
+        val formatter = DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .appendPattern("dd/MM/yyyy - h:mm a")
+            .toFormatter(Locale.ENGLISH)
 
-        when (fechaSeleccionada) {
-            "Más antiguos" -> listaFiltradaPorEstado.sortedBy { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
-            else -> listaFiltradaPorEstado.sortedByDescending { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
+        try {
+            when (fechaSeleccionada) {
+                "Más antiguos" -> listaFiltradaPorEstado.sortedBy { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
+                else -> listaFiltradaPorEstado.sortedByDescending { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
+            }
+        } catch (e: Exception) {
+            // Si algo sale mal, devolvemos la lista sin ordenar para evitar que la app se cierre.
+            println("Error al parsear fecha: ${e.message}")
+            listaFiltradaPorEstado
         }
     }
 
@@ -204,7 +214,7 @@ fun TradeHistoryCard(historialTrueque: HistorialTrueque, onVerDetalleClick: () -
             Text(text = "Última actualización: ${historialTrueque.ultimaActualizacion}", fontSize = 12.sp, color = Color.Gray)
 
             Button(
-                onClick = onVerDetalleClick, 
+                onClick = onVerDetalleClick,
                 modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {

@@ -44,7 +44,7 @@ fun TradeDetailScreen(tradeId: String?, onNavigateBack: () -> Unit) {
         HistorialTrueque("2", "Ofrezco Laptop Apple i9", "Abigail Gutierrez", "Rechazado", "23/09/2025 - 7:07 am", android.R.drawable.ic_dialog_info),
         HistorialTrueque("3", "Necesito bicicleta para niño", "Raul Romero", "Pendiente", "21/09/2025 - 10:07 am", android.R.drawable.ic_dialog_info)
     )
-    // `find` es una función de Kotlin que busca el primer elemento que cumple una condición.
+    // find es una función de Kotlin que busca el primer elemento que cumple una condición.
     val tradeToShow = allTrades.find { it.id == tradeId }
 
     // --- ESTRUCTURA DE LA PANTALLA ---
@@ -76,9 +76,9 @@ fun TradeDetailScreen(tradeId: String?, onNavigateBack: () -> Unit) {
                     contentDescription = "Avatar de usuario",
                     modifier = Modifier.size(120.dp).clip(CircleShape)
                 )
-                
+
                 Text(tradeToShow.nombreUsuario, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                
+
                 Text("\"${tradeToShow.titulo}\"", fontSize = 20.sp, style = MaterialTheme.typography.titleLarge)
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -99,5 +99,5 @@ fun TradeDetailScreen(tradeId: String?, onNavigateBack: () -> Unit) {
 @Composable
 fun TradeDetailScreenPreview() {
     // Hacemos una vista previa pasando un ID de ejemplo y una función vacía.
-    TradeDetailScreen(tradeId = "1", onNavigateBack = {})
+    TradeDetailScreen(tradeId = "1" , onNavigateBack={})
 }
