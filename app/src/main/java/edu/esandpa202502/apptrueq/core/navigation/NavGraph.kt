@@ -13,16 +13,18 @@ import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
+import edu.esandpa202502.apptrueq.offer.ui.OfferListScreen
+import edu.esandpa202502.apptrueq.offer.ui.OfferFormScreen
 
 /**
- * Este es el gráfico de navegación principal de la aplicación.
- * Define todas las rutas o pantallas y las conecta con su Composable correspondiente.
+ * Gráfico de navegación principal de la aplicación TrueQ.
+ * Incluye pantallas base del proyecto y HU-03 (Ofertas).
  */
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Explore.route // 🧭 Pantalla inicial
+        startDestination = Routes.Explore.route // Pantalla inicial
     ) {
         // 🔹 Módulo Explore
         composable(Routes.Explore.route) {
@@ -62,6 +64,14 @@ fun NavGraph(navController: NavHostController) {
         // 🔹 Módulo Report
         composable(route = "report_user") {
             ReportUserScreen()
+        }
+
+        // 🔹 HU-03: Módulo Offer (tu rama)
+        composable("offers") {
+            OfferListScreen(navController)
+        }
+        composable("offerForm") {
+            OfferFormScreen(onBack = { navController.popBackStack() })
         }
     }
 }
