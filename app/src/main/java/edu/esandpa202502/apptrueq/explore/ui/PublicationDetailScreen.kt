@@ -1,129 +1,39 @@
 package edu.esandpa202502.apptrueq.explore.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import edu.esandpa202502.apptrueq.core.QrCodeGenerator
-import edu.esandpa202502.apptrueq.publication.viewmodel.PublicationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicationDetailScreen(
-    publicationId: String,
-    navController: NavController,
-    publicationViewModel: PublicationViewModel = viewModel()
+    id: Int,
+    onBack: () -> Unit
 ) {
-    var showProposalForm by remember { mutableStateOf(false) }
-    var showQrGenerator by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle de Publicación") },
+                title = { Text("Detalle de publicación") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
-                    }
+                    TextButton(onClick = onBack) { Text("Atrás") }
                 }
             )
         }
-    ) { paddingValues ->
+    ) { pv ->
         Column(
             modifier = Modifier
+                .padding(pv)
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            when {
-                showProposalForm -> {
-                    ProposalForm(publicationId = publicationId) {
-                        showProposalForm = false
-                    }
-                }
-                showQrGenerator -> {
-                    QrCodeGenerator(
-                        publicationId = publicationId,
-                        viewModel = publicationViewModel
-                    ) {
-                        showQrGenerator = false
-                    }
-                }
-                else -> {
-                    Text(text = "Detalle de la Publicación: $publicationId")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { showProposalForm = true }) {
-                        Text(text = "Enviar propuesta")
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { showQrGenerator = true }) {
-                        Text(text = "Compartir por QR")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ProposalForm(publicationId: String, onDismiss: () -> Unit) {
-    var proposalText by remember { mutableStateOf("") }
-    val isFormValid = proposalText.length >= 10 && proposalText.length <= 250
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Enviar Propuesta a Publicación: $publicationId")
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = proposalText,
-            onValueChange = { proposalText = it },
-            label = { Text("Mensaje de la propuesta (10-250 caracteres)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        // TODO: Add option to attach user's own offer
-        Button(
-            onClick = {
-                // TODO: Handle proposal submission
-                onDismiss()
-            },
-            enabled = isFormValid
-        ) {
-            Text(text = "Enviar")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onDismiss) {
-            Text(text = "Cancelar")
+            Text(text = "ID de publicación: $id", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Esta es una pantalla de ejemplo (stub) para mantener el flujo de Explore navegable.")
+            Button(onClick = onBack) { Text("Volver") }
         }
     }
 }

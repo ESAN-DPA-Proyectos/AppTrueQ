@@ -15,8 +15,12 @@ import edu.esandpa202502.apptrueq.ui.theme.AppTrueQTheme
 
 /**
  * Punto de entrada principal de la aplicación TrueQ.
- * Integra la navegación principal dentro de un DrawerScaffold.
- * HU relacionadas: HU-08 (Notificaciones), HU-12 (Reportes), HU-13 (QR), etc.
+ * Contiene el DrawerScaffold (menú lateral) y el gráfico de navegación general.
+ * Integra las HU:
+ *  - HU-03 (Ofertas)
+ *  - HU-08 (Notificaciones)
+ *  - HU-12 (Reportes)
+ *  - HU-13 (QR)
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,9 +32,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Controlador de navegación
                     val navController = rememberNavController()
-                    // Estructura principal con menú lateral (Drawer)
+
+                    // Estructura principal con Drawer + NavGraph
                     DrawerScaffold(navController = navController) {
                         NavGraph(navController = navController)
                     }
