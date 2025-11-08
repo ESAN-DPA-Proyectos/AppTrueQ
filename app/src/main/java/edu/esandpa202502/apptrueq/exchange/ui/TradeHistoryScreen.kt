@@ -59,7 +59,7 @@ fun TradeHistoryScreen(navController: NavController) {
     )
 
     // --- ESTADOS PARA LOS FILTROS ---
-    var estadoSeleccionado by remember { mutableStateOf("Todos") } 
+    var estadoSeleccionado by remember { mutableStateOf("Todos") }
     var menuEstadoExpanded by remember { mutableStateOf(false) }
     val opcionesEstado = listOf("Todos", "Aceptado", "Rechazado", "Pendiente")
 
@@ -214,7 +214,7 @@ fun TradeHistoryCard(historialTrueque: HistorialTrueque, onVerDetalleClick: () -
             Text(text = "Última actualización: ${historialTrueque.ultimaActualizacion}", fontSize = 12.sp, color = Color.Gray)
 
             Button(
-                onClick = onVerDetalleClick, 
+                onClick = onVerDetalleClick,
                 modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
