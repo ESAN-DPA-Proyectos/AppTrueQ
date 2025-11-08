@@ -13,9 +13,11 @@ import edu.esandpa202502.apptrueq.core.navigation.DrawerScaffold
 import edu.esandpa202502.apptrueq.core.navigation.NavGraph
 import edu.esandpa202502.apptrueq.ui.theme.AppTrueQTheme
 
-
-/*
-versión sin dawerscaffold
+/**
+ * Punto de entrada principal de la aplicación TrueQ.
+ * Integra la navegación principal dentro de un DrawerScaffold.
+ * HU relacionadas: HU-08 (Notificaciones), HU-12 (Reportes), HU-13 (QR), etc.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,29 +28,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // Controlador de navegación
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
-                }
-            }
-        }
-    }
-}
-*/
-
-
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            AppTrueQTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val navController = rememberNavController()
-                    // Ahora, DrawerScaffold envuelve a nuestro NavGraph
+                    // Estructura principal con menú lateral (Drawer)
                     DrawerScaffold(navController = navController) {
                         NavGraph(navController = navController)
                     }
