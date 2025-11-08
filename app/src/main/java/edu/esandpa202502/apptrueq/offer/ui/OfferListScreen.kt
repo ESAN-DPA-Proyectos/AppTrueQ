@@ -104,8 +104,9 @@ fun OfferListScreen(vm: OfferViewModel) {
 
 @Composable
 fun OfferCard(offer: Offer) {
-    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-    val date = sdf.format(Date())
+    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
+    sdf.timeZone = TimeZone.getTimeZone("America/Lima")
+    val date = sdf.format(offer.createdAt)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
