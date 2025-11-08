@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 
-// --- Pantallas principales y módulos ---
+// --- Módulos principales ---
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
@@ -19,30 +19,22 @@ import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
 
-// --- Módulo de Ofertas (HU-03) ---
+// --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
+import edu.esandpa202502.apptrueq.need.ui.NeedScreen
 
-/**
- * Gráfico de navegación principal de la aplicación TrueQ.
- * HU integradas:
- *  - HU-03 (Ofertas)
- *  - HU-08 (Notificaciones)
- *  - HU-12 (Reportes)
- *  - HU-13 (QR)
- */
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Dashboard.route // Pantalla inicial
+        startDestination = Routes.Dashboard.route
     ) {
-
         // --- DASHBOARD ---
         composable(Routes.Dashboard.route) {
             DashboardScreen(navController = navController)
         }
 
-        // --- AUTENTICACIÓN ---
+        // --- LOGIN ---
         composable(Routes.Login.route) {
             LoginScreen(navController = navController)
         }
@@ -54,22 +46,19 @@ fun NavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("publicationId") { type = NavType.StringType })
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { backStackEntry ->
-            val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
-            PublicationDetailScreen(
-                publicationId = publicationId,
-                navController = navController
-            )
+            val id = backStackEntry.arguments?.getInt("id") ?: -1
+            PublicationDetailScreen(id = id, onBack = { navController.popBackStack() })
         }
 
         // --- HISTORIAL DE INTERCAMBIOS ---
-        composable(route = Routes.TradeHistory.route) {
+        composable(Routes.TradeHistory.route) {
             TradeHistoryScreen(navController = navController)
         }
 
         // --- PROPUESTAS RECIBIDAS ---
-        composable(route = Routes.Proposals_received.route) {
+        composable(Routes.Proposals_received.route) {
             ProposalsReceivedScreen()
         }
 
@@ -79,7 +68,7 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            TradeDetailScreen(tradeId = tradeId)
+            TradeDetailScreen(tradeId = tradeId, onNavigateBack = { navController.popBackStack() })
         }
 
         // --- NOTIFICACIONES ---
@@ -92,10 +81,7 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("notificationId") { type = NavType.StringType })
         ) { backStackEntry ->
             val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
-            NotificationDetailScreen(
-                notificationId = notificationId,
-                navController = navController
-            )
+            NotificationDetailScreen(notificationId = notificationId, navController = navController)
         }
 
         // --- REPORTAR USUARIO ---
@@ -103,9 +89,13 @@ fun NavGraph(navController: NavHostController) {
             ReportUserScreen()
         }
 
-        // --- MÓDULO HU-03: OFERTAS ---
+        // --- MÓDULO HU-03: OFERTAS Y NECESIDADES ---
         composable(Routes.Offer.route) {
-            OfferScreen(vm = null) // si tu OfferScreen tiene un ViewModel interno, no pases nada
+            OfferScreen()
+        }
+
+        composable(Routes.Need.route) {
+            NeedScreen()
         }
     }
 }

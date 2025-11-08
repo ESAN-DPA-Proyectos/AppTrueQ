@@ -5,16 +5,20 @@ package edu.esandpa202502.apptrueq.core.navigation
  * Centraliza todas las pantallas del flujo de navegación.
  */
 sealed class Routes(val route: String) {
-
     // --- PANTALLAS BASE ---
     object Dashboard : Routes("dashboard")
     object Explore : Routes("explore")
     object Login : Routes("auth")
     object Profile : Routes("profile")
 
+    // --- MÓDULO HU-03: OFERTAS Y NECESIDADES ---
+    object Offer : Routes("offer")
+    object Need : Routes("need")
+    object OfferForm : Routes("offerForm")
+
     // --- DETALLES DE PUBLICACIÓN ---
-    object PublicationDetail : Routes("publicationDetail/{publicationId}") {
-        fun createRoute(publicationId: String) = "publicationDetail/$publicationId"
+    object PublicationDetail : Routes("publicationDetail/{id}") {
+        fun createRoute(id: String) = "publicationDetail/$id"
     }
 
     // --- MÓDULO DE INTERCAMBIOS ---
@@ -35,8 +39,4 @@ sealed class Routes(val route: String) {
     object NotificationDetail : Routes("notification_detail/{notificationId}") {
         fun createRoute(notificationId: String) = "notification_detail/$notificationId"
     }
-
-    // --- MÓDULO DE OFERTAS (HU-03) ---
-    object Offer : Routes("offer") // Pantalla principal de Ofertas (tabs)
-    object OfferForm : Routes("offerForm") // Pantalla de formulario de oferta
 }
