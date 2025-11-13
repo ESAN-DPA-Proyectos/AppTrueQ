@@ -97,7 +97,7 @@ fun PublicationDetailScreen(
 fun ProposalForm(publicationId: String, onDismiss: () -> Unit) {
     var proposalText by remember { mutableStateOf("") }
     val isFormValid = proposalText.length >= 10 && proposalText.length <= 250
-
+//Verificar código
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
