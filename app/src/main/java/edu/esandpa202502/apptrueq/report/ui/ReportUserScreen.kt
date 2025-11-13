@@ -1,5 +1,6 @@
 package edu.esandpa202502.apptrueq.report.ui
 
+// --- Importaciones explícitas y limpias ---
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,6 +60,7 @@ fun ReportUserScreen() {
     val motivos = listOf("Fraude", "Incumplimiento", "Lenguaje ofensivo", "Spam")
     val maxCaracteresDescripcion = 250
 
+    Scaffold(
     val limpiarCampos = {
         idDenunciado = ""
         nombreDenunciado = "Nombre del denunciado"
@@ -87,6 +89,8 @@ fun ReportUserScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Con las importaciones corregidas, el IDE ahora entiende que `item` es un bloque Composable.
+            item { 
             item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -97,6 +101,7 @@ fun ReportUserScreen() {
                             modifier = Modifier.weight(1f)
                         )
                         IconButton(onClick = {
+                            nombreDenunciado = if (idDenunciado == "09909180") "Victor Leonardo" else "Nombre del denunciado"
                             nombreDenunciado = when (idDenunciado) {
                                 "" -> "Nombre del denunciado"
                                 "09909180" -> "Victor Leonardo"
@@ -128,6 +133,7 @@ fun ReportUserScreen() {
 
                     ExposedDropdownMenuBox(
                         expanded = isMenuExpanded,
+                        onExpandedChange = { isMenuExpanded = it }
                         onExpandedChange = { isMenuExpanded = !isMenuExpanded }
                     ) {
                         OutlinedTextField(
@@ -178,6 +184,10 @@ fun ReportUserScreen() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
+                        Button(onClick = { /* TODO: Lógica para cancelar */ }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
+                            Text("Cancelar")
+                        }
+                        Button(onClick = { /* TODO: Lógica para enviar el reporte */ }) {
                         Button(
                             onClick = { showCancelDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
@@ -238,4 +248,5 @@ fun ReportUserScreen() {
 @Composable
 fun ReportUserScreenPreview() {
     ReportUserScreen()
+}
 }
