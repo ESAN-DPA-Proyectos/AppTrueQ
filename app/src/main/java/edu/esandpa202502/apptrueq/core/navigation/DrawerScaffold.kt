@@ -35,6 +35,7 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
         NavigationItem("Dashboard", Icons.Filled.Home, Icons.Outlined.Home, route = Routes.Dashboard.route),
         NavigationItem("Explorar", Icons.Filled.Search, Icons.Outlined.Search, route = Routes.Explore.route),
         NavigationItem("Login", Icons.Filled.Person, Icons.Outlined.Person, route = Routes.Login.route),
+        NavigationItem("Perfil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Profile.route),
         NavigationItem("Oferta", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Offer.route),
         NavigationItem("Necesidad", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Need.route),
         NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
