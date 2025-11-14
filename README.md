@@ -11,6 +11,7 @@ Universidad ESAN
 Este proyecto forma parte del curso **Desarrollo de Soluciones Móviles (DSM)**, y constituye el **trabajo aplicativo integrador** orientado al diseño, desarrollo y despliegue de una solución móvil real, siguiendo las buenas prácticas de arquitectura Android y control de versiones colaborativo en GitHub.
 
 ---//fsdfsd
+---
 
 ## Objetivo del proyecto
 
@@ -40,3 +41,18 @@ Permitir que los usuarios puedan ofrecer productos o servicios, proponer interca
 - Compartir publicaciones mediante **código QR**.
 
 ---
+
+## Protección de la rama principal
+
+El proyecto **AppTrueQ** emplea un flujo de trabajo colaborativo basado en **ramas (branches)** y **pull requests**, siguiendo las buenas prácticas de control de versiones con **GitHub**.
+
+### Configuración de protección
+La rama principal **`main`** está protegida mediante un *ruleset* activo, el cual garantiza:
+
+- Bloqueo de *push* directos a `main`.  
+- Requerimiento de **Pull Request (PR)** antes de fusionar cambios.  
+- Aprobación mínima de **1 revisor** antes del *merge*.  
+- Prevención de *force push* y eliminación de la rama principal.  
+- Acceso restringido únicamente a los **4 miembros autorizados** del equipo del curso.
+
+Esta configuración asegura la **integridad del código fuente**, la **trazabilidad de los cambios** y la **seguridad del repositorio** frente a modificaciones no autorizadas.

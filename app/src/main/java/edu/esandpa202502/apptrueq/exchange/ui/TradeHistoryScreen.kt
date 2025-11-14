@@ -1,7 +1,16 @@
 package edu.esandpa202502.apptrueq.exchange.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -10,124 +19,177 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.util.Locale
 
-/**
- * Data class (clase de datos) para representar un solo elemento en el historial de trueques.
- * Usar una data class es una forma moderna y concisa en Kotlin para guardar datos.
- * Más adelante, cuando conectemos a Firebase, este modelo representará un "documento" de la base de datos.
- */
 data class HistorialTrueque(
-    val id: String, // Usaremos un ID para identificar cada trueque de forma única
+    val id: String,
     val titulo: String,
     val nombreUsuario: String,
-    val estado: String, // Puede ser "Aceptado", "Rechazado", "Pendiente"
+    val estado: String,
     val ultimaActualizacion: String,
-    val imagenUsuario: Int // Por ahora, usamos un ID de recurso drawable. En el futuro, será una URL de Firebase.
+    val imagenUsuario: Int
 )
 
-@OptIn(ExperimentalMaterial3Api::class) // Necesario para usar componentes de Material 3 como Scaffold y TopAppBar
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TradeHistoryScreen() {
-
+fun TradeHistoryScreen(navController: NavController) {
     // --- DATOS DE EJEMPLO ---
-    // Creamos una lista de datos falsos para mostrar en la pantalla.
-    // Cuando conectemos a Firebase, esta lista vendrá de la base de datos.
     val listaDeTrueques = listOf(
-        HistorialTrueque(
-            id = "1",
-            titulo = "Necesito libro de Phyton 3.07",
-            nombreUsuario = "Juan Rodriguez",
-            estado = "Aceptado",
-            ultimaActualizacion = "25/09/2025 - 10:25 pm",
-            imagenUsuario = android.R.drawable.ic_dialog_info // Ícono de ejemplo
-        ),
-        HistorialTrueque(
-            id = "2",
-            titulo = "Ofrezco Laptop Apple i9",
-            nombreUsuario = "Abigail Gutierrez",
-            estado = "Rechazado",
-            ultimaActualizacion = "23/09/2025 - 7:07 am",
-            imagenUsuario = android.R.drawable.ic_dialog_info
-        ),
-        HistorialTrueque(
-            id = "3",
-            titulo = "Necesito bicicleta para niño",
-            nombreUsuario = "Raul Romero",
-            estado = "Pendiente",
-            ultimaActualizacion = "21/09/2025 - 10:07 am",
-            imagenUsuario = android.R.drawable.ic_dialog_info
-        )
+        HistorialTrueque("1", "Necesito libro de Phyton 3.07", "Juan Rodriguez", "Aceptado", "25/09/2025 - 10:25 pm", android.R.drawable.ic_dialog_info),
+        HistorialTrueque("2", "Ofrezco Laptop Apple i9", "Abigail Gutierrez", "Rechazado", "23/09/2025 - 07:07 am", android.R.drawable.ic_dialog_info),
+        HistorialTrueque("3", "Necesito bicicleta para niño", "Raul Romero", "Pendiente", "21/09/2025 - 10:07 am", android.R.drawable.ic_dialog_info)
     )
 
-    // --- ESTRUCTURA DE LA PANTALLA ---
-    // Scaffold es un componente de Material Design que nos da una estructura básica de pantalla
-    // (barra superior, contenido, botón flotante, etc.). Es como el esqueleto de la pantalla.
+    // --- ESTADOS PARA LOS FILTROS ---
+    var estadoSeleccionado by remember { mutableStateOf("Todos") }
+    var menuEstadoExpanded by remember { mutableStateOf(false) }
+    val opcionesEstado = listOf("Todos", "Aceptado", "Rechazado", "Pendiente")
+
+    var fechaSeleccionada by remember { mutableStateOf("Más recientes") }
+    var menuFechaExpanded by remember { mutableStateOf(false) }
+    val opcionesFecha = listOf("Más recientes", "Más antiguos")
+
+    val truequesFiltrados = remember(estadoSeleccionado, fechaSeleccionada) {
+        val listaFiltradaPorEstado = if (estadoSeleccionado == "Todos") {
+            listaDeTrueques
+        } else {
+            listaDeTrueques.filter { it.estado == estadoSeleccionado }
+        }
+
+        // CORRECCIÓN FINAL: Se usa un DateTimeFormatterBuilder para ignorar mayúsculas/minúsculas en "am/pm".
+        val formatter = DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .appendPattern("dd/MM/yyyy - h:mm a")
+            .toFormatter(Locale.ENGLISH)
+
+        try {
+            when (fechaSeleccionada) {
+                "Más antiguos" -> listaFiltradaPorEstado.sortedBy { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
+                else -> listaFiltradaPorEstado.sortedByDescending { LocalDateTime.parse(it.ultimaActualizacion, formatter) }
+            }
+        } catch (e: Exception) {
+            // Si algo sale mal, devolvemos la lista sin ordenar para evitar que la app se cierre.
+            println("Error al parsear fecha: ${e.message}")
+            listaFiltradaPorEstado
+        }
+    }
+
     Scaffold(
         topBar = {
-            // La barra de navegación superior
             TopAppBar(
                 title = { Text("Historial de Trueques") },
                 navigationIcon = {
-                    // El ícono para volver atrás
-                    IconButton(onClick = { /* TODO: Implementar la navegación hacia atrás */ }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
         }
-    ) { paddingValues -> // `paddingValues` contiene el espacio que ocupa la TopAppBar
-
-        // Column organiza los elementos verticalmente, uno debajo del otro.
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize() // Ocupa todo el espacio disponible
-                .padding(paddingValues) // Aplica el padding para no solaparse con la TopAppBar
-                .padding(16.dp) // Añade un padding general a los bordes de la pantalla
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            // Fila para los filtros
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp) // Espacio entre los filtros
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Usamos un TextField que parece un menú desplegable, como en la imagen.
-                // El `weight(1f)` hace que ambos filtros ocupen el mismo espacio.
-                FilterDropdown(text = "Seleccione estado", modifier = Modifier.weight(1f))
-                FilterDropdown(text = "Fecha", modifier = Modifier.weight(1f))
+                ExposedDropdownMenuBox(
+                    expanded = menuEstadoExpanded,
+                    onExpandedChange = { menuEstadoExpanded = !menuEstadoExpanded },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = estadoSeleccionado,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Estado") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuEstadoExpanded) },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = menuEstadoExpanded,
+                        onDismissRequest = { menuEstadoExpanded = false }
+                    ) {
+                        opcionesEstado.forEach { opcion ->
+                            DropdownMenuItem(
+                                text = { Text(opcion) },
+                                onClick = {
+                                    estadoSeleccionado = opcion
+                                    menuEstadoExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                ExposedDropdownMenuBox(
+                    expanded = menuFechaExpanded,
+                    onExpandedChange = { menuFechaExpanded = !menuFechaExpanded },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    OutlinedTextField(
+                        value = fechaSeleccionada,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Fecha") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuFechaExpanded) },
+                        modifier = Modifier.menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = menuFechaExpanded,
+                        onDismissRequest = { menuFechaExpanded = false }
+                    ) {
+                        opcionesFecha.forEach { opcion ->
+                            DropdownMenuItem(
+                                text = { Text(opcion) },
+                                onClick = {
+                                    fechaSeleccionada = opcion
+                                    menuFechaExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp)) // Un espacio vertical entre los filtros y la lista
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // --- LISTA DE TRUEQUES ---
-            // `LazyColumn` es una lista optimizada. Solo renderiza los elementos que son visibles
-            // en la pantalla, lo que es muy eficiente para listas largas.
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre cada tarjeta
-            ) {
-                // `items` es una función de LazyColumn que recorre nuestra lista de datos.
-                items(listaDeTrueques) { trueque ->
-                    // `trueque` es cada uno de los elementos de `listaDeTrueques` en cada iteración.
-                    TradeHistoryCard(historialTrueque = trueque)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                items(truequesFiltrados) { trueque ->
+                    TradeHistoryCard(
+                        historialTrueque = trueque,
+                        onVerDetalleClick = {
+                            navController.navigate("trade_detail/${trueque.id}")
+                        }
+                    )
                 }
             }
         }
     }
 }
 
-/**
- * Composable para la tarjeta individual del historial.
- * Dividir la UI en componentes más pequeños (como esta tarjeta) hace el código más limpio y reutilizable.
- */
 @Composable
-fun TradeHistoryCard(historialTrueque: HistorialTrueque) {
+fun TradeHistoryCard(historialTrueque: HistorialTrueque, onVerDetalleClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -136,30 +198,24 @@ fun TradeHistoryCard(historialTrueque: HistorialTrueque) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Título del trueque
             Text(text = "\"${historialTrueque.titulo}\"", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
-            // Fila para la imagen y nombre de usuario
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = historialTrueque.imagenUsuario),
                     contentDescription = "Avatar de usuario",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape) // Hace la imagen redonda
+                    modifier = Modifier.size(40.dp).clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = historialTrueque.nombreUsuario)
             }
 
-            // Estado y fecha
             Text(text = "Estado: \"${historialTrueque.estado}\"")
             Text(text = "Última actualización: ${historialTrueque.ultimaActualizacion}", fontSize = 12.sp, color = Color.Gray)
 
-            // Botón para ver el detalle
             Button(
-                onClick = { /* TODO: Navegar a la pantalla de detalle del trueque */ },
-                modifier = Modifier.align(Alignment.End), // Alinea el botón a la derecha
+                onClick = onVerDetalleClick,
+                modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
                 Text("Ver Detalle", color = Color.White)
@@ -168,28 +224,8 @@ fun TradeHistoryCard(historialTrueque: HistorialTrueque) {
     }
 }
 
-/**
- * Composable para simular un campo de filtro desplegable.
- */
-@Composable
-fun FilterDropdown(text: String, modifier: Modifier = Modifier) {
-    OutlinedTextField(
-        value = text,
-        onValueChange = {}, // No hace nada por ahora
-        readOnly = true, // Para que el usuario no pueda escribir en él
-        modifier = modifier,
-        trailingIcon = { // Ícono al final del campo de texto
-            Icon(Icons.Default.ArrowDropDown, contentDescription = "Desplegar")
-        }
-    )
-}
-
-
-// --- VISTA PREVIA ---
-// El @Preview nos permite ver cómo se ve nuestro Composable directamente en Android Studio
-// sin necesidad de ejecutar la aplicación en el emulador. Es muy útil para agilizar el desarrollo de la UI.
 @Preview(showBackground = true)
 @Composable
 fun TradeHistoryScreenPreview() {
-    TradeHistoryScreen()
+    TradeHistoryScreen(navController = NavController(LocalContext.current))
 }
