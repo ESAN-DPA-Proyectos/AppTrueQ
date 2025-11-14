@@ -23,6 +23,10 @@ import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 import edu.esandpa202502.apptrueq.need.ui.NeedScreen
 
+/**
+ * Este es el gráfico de navegación principal de la aplicación.
+ * Define todas las rutas o pantallas y las conecta con su Composable correspondiente.
+ */
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
