@@ -54,7 +54,7 @@ fun LoginScreen(
 
         // boton de iniciar sesion
         // 2. Implementamos la lógica de navegación.
-        Button(onClick = { 
+        Button(onClick = {
             // TODO: Aquí iría la lógica de verificación de usuario y contraseña con Firebase.
             // Por ahora, simulamos un login exitoso.
 
