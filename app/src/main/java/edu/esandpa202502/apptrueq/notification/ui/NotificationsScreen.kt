@@ -68,9 +68,9 @@ fun NotificationsScreen(navController: NavController) {
             Notificacion("4", "propuesta_rechazada", "Propuesta rechazada", "Tu propuesta para Laptop Dell...", "Hace 17 horas", Icons.Default.Cancel, isRead = true)
         ))
     }
-    
+
     var showOnlyUnread by remember { mutableStateOf(false) }
-    
+
     val filteredNotifications by remember(showOnlyUnread, notifications) {
         derivedStateOf {
             if (showOnlyUnread) {

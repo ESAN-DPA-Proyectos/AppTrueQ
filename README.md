@@ -10,6 +10,7 @@ Universidad ESAN
 
 Este proyecto forma parte del curso **Desarrollo de Soluciones Móviles (DSM)**, y constituye el **trabajo aplicativo integrador** orientado al diseño, desarrollo y despliegue de una solución móvil real, siguiendo las buenas prácticas de arquitectura Android y control de versiones colaborativo en GitHub.
 
+---//fsdfsd
 ---
 
 ## Objetivo del proyecto
