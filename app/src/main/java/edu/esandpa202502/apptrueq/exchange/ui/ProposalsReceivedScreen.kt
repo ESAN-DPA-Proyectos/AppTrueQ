@@ -25,12 +25,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 data class Proposal(
     val id: Int,
@@ -54,26 +58,49 @@ data class Proposal(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalsReceivedScreen() {
-    // N.º 1: La lista de propuestas ahora es un estado mutable.
-    // Esto permite que la UI reaccione cuando cambiamos el estado de una propuesta.
     var proposals by remember {
-        mutableStateOf(listOf(
-            Proposal(1, "Juan Rodriguez", "Ofrezco Laptop y Computadoras", "Te ofrezco Laptop Apple i9", "25/09/2025 -- 10:25 am", "Pendiente", android.R.drawable.ic_dialog_info),
-            Proposal(2, "Marilyn Paira", "Libros de programación", "Necesito libro Phyton 3.07", "17/07/2025 -- 11:17 am", "Pendiente", android.R.drawable.ic_dialog_info)
-        ))
+        mutableStateOf(
+            listOf(
+                Proposal(
+                    1,
+                    "Juan Rodriguez",
+                    "Ofrezco Laptop y Computadoras",
+                    "Te ofrezco Laptop Apple i9",
+                    "25/09/2025 -- 10:25 am",
+                    "Pendiente",
+                    android.R.drawable.ic_dialog_info
+                ),
+                Proposal(
+                    2,
+                    "Marilyn Paira",
+                    "Libros de programación",
+                    "Necesito libro Phyton 3.07",
+                    "17/07/2025 -- 11:17 am",
+                    "Pendiente",
+                    android.R.drawable.ic_dialog_info
+                )
+            )
+        )
     }
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedProposalId by remember { mutableStateOf<Int?>(null) }
     var actionToConfirm by remember { mutableStateOf<String?>(null) }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Propuestas Recibidas") },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle back press */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { /* TODO: back navigation */ }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -107,18 +134,30 @@ fun ProposalsReceivedScreen() {
                 onDismissRequest = { showDialog = false },
                 title = { Text("¿Está seguro de esta acción?") },
                 confirmButton = {
-                    Button(onClick = {
-                        // N.º 2: Lógica para actualizar el estado de la propuesta.
-                        proposals = proposals.map {
-                            if (it.id == selectedProposalId) {
-                                // Creamos una copia de la propuesta, cambiando solo el estado.
-                                it.copy(status = if (actionToConfirm == "accept") "Aceptado" else "Rechazado")
-                            } else {
-                                it // Devolvemos las demás propuestas sin cambios.
+                    Button(
+                        onClick = {
+                            // Actualizar estado local
+                            proposals = proposals.map {
+                                if (it.id == selectedProposalId) {
+                                    it.copy(
+                                        status = if (actionToConfirm == "accept")
+                                            "Aceptado" else "Rechazado"
+                                    )
+                                } else it
                             }
+
+                            // Aviso visual
+                            scope.launch {
+                                val msg = if (actionToConfirm == "accept")
+                                    "Propuesta aceptada correctamente"
+                                else
+                                    "Propuesta rechazada"
+                                snackbarHostState.showSnackbar(msg)
+                            }
+
+                            showDialog = false
                         }
-                        showDialog = false
-                    }) {
+                    ) {
                         Text("SI")
                     }
                 },
@@ -161,28 +200,24 @@ fun ProposalCard(
             Text(text = "Fecha: ${proposal.date}")
             Text(text = "Estado: \"${proposal.status}\"")
             Spacer(modifier = Modifier.height(16.dp))
+
+            val areButtonsEnabled = proposal.status == "Pendiente"
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // N.º 3: Lógica de habilitación de los botones.
-                // Los botones solo estarán activos si el estado de la propuesta es "Pendiente".
-                val areButtonsEnabled = proposal.status == "Pendiente"
-
                 Button(
                     onClick = onAcceptClick,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                     enabled = areButtonsEnabled
-                ) {
-                    Text("Aceptar", color = Color.White)
-                }
+                ) { Text("Aceptar", color = Color.White) }
+
                 Button(
                     onClick = onRejectClick,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                     enabled = areButtonsEnabled
-                ) {
-                    Text("Rechazar", color = Color.White)
-                }
+                ) { Text("Rechazar", color = Color.White) }
             }
         }
     }
