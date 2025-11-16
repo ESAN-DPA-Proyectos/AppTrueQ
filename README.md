@@ -10,7 +10,6 @@ Universidad ESAN
 
 Este proyecto forma parte del curso **Desarrollo de Soluciones Móviles (DSM)**, y constituye el **trabajo aplicativo integrador** orientado al diseño, desarrollo y despliegue de una solución móvil real, siguiendo las buenas prácticas de arquitectura Android y control de versiones colaborativo en GitHub.
 
----//fsdfsd
 ---
 
 ## Objetivo del proyecto
@@ -39,7 +38,6 @@ Permitir que los usuarios puedan ofrecer productos o servicios, proponer interca
 - Reporte de usuarios o publicaciones inadecuadas.  
 - Panel administrativo con reportes estadísticos (usuarios activos, categorías más usadas, etc.).  
 - Compartir publicaciones mediante **código QR**.
-- nuevo commit.
 
 ---
 
