@@ -38,6 +38,7 @@ Permitir que los usuarios puedan ofrecer productos o servicios, proponer interca
 - Reporte de usuarios o publicaciones inadecuadas.  
 - Panel administrativo con reportes estadísticos (usuarios activos, categorías más usadas, etc.).  
 - Compartir publicaciones mediante **código QR**.
+- nuevo commit.
 
 ---
 

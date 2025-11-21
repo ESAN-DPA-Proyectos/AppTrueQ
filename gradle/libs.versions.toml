@@ -10,6 +10,8 @@ activityCompose = "1.11.0"
 composeBom = "2025.11.00"
 # VERSIÓN CORREGIDA Y ESTABLE DE NAVIGATION COMPOSE
 navigationCompose = "2.9.6"
+firebaseFirestore = "26.0.2"
+firebaseAuth = "24.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +34,8 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 
 # Navigation Compose con su versión correcta referenciada
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
