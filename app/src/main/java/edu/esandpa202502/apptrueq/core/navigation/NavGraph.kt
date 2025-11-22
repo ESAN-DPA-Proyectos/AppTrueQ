@@ -6,7 +6,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-import com.google.firebase.auth.FirebaseAuth
 
 // --- Módulos principales ---
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
@@ -15,7 +14,7 @@ import edu.esandpa202502.apptrueq.auth.ui.Logout
 import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.exchange.ui.ProposalsReceivedScreen
+import edu.esandpa202502.apptrueq.exchange.ui.OffersReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
@@ -26,25 +25,17 @@ import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 import edu.esandpa202502.apptrueq.need.ui.NeedScreen
 
-/**
- * Este es el gráfico de navegación principal de la aplicación.
- * Define todas las rutas o pantallas y las conecta con su Composable correspondiente.
- */
 @Composable
 fun NavGraph(navController: NavHostController) {
-    //val currentUser = FirebaseAuth.getInstance().currentUser
-    //val startDestination = if (currentUser != null) Routes.Dashboard.route else Routes.Login.route
 
     NavHost(
         navController = navController,
         startDestination = Routes.Login.route
     ) {
-        // --- DASHBOARD ---
         composable(Routes.Dashboard.route) {
             DashboardScreen(navController = navController)
         }
 
-        // --- AUTH ---
         composable(Routes.Login.route) {
             LoginScreen(navController = navController)
         }
@@ -57,7 +48,6 @@ fun NavGraph(navController: NavHostController) {
             Logout(navController = navController)
         }
 
-        // --- EXPLORAR PUBLICACIONES ---
         composable(Routes.Explore.route) {
             ExploreScreen(navController = navController)
         }
@@ -70,17 +60,14 @@ fun NavGraph(navController: NavHostController) {
             PublicationDetailScreen(id = id, onBack = { navController.popBackStack() })
         }
 
-        // --- HISTORIAL DE INTERCAMBIOS ---
         composable(Routes.TradeHistory.route) {
             TradeHistoryScreen(navController = navController)
         }
 
-        // --- PROPUESTAS RECIBIDAS ---
-        composable(Routes.ProposalsReceived.route) {
-            ProposalsReceivedScreen()
+        composable(Routes.OffersReceived.route) {
+            OffersReceivedScreen(navController = navController)
         }
 
-        // --- DETALLE DE INTERCAMBIO ---
         composable(
             route = Routes.TradeDetail.route,
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
@@ -89,25 +76,30 @@ fun NavGraph(navController: NavHostController) {
             TradeDetailScreen(tradeId = tradeId, onNavigateBack = { navController.popBackStack() })
         }
 
-        // --- NOTIFICACIONES ---
         composable(Routes.Notifications.route) {
             NotificationsScreen(navController = navController)
         }
 
         composable(
-            route = Routes.NotificationDetail.route,
-            arguments = listOf(navArgument("notificationId") { type = NavType.StringType })
+            route = Routes.NotificationDetail.route, 
+            arguments = listOf(
+                navArgument("notificationId") { type = NavType.StringType; nullable = true },
+                navArgument("referenceId") { type = NavType.StringType; nullable = true }
+            )
         ) { backStackEntry ->
-            val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
-            NotificationDetailScreen(notificationId = notificationId, navController = navController)
+            val notificationId = backStackEntry.arguments?.getString("notificationId")
+            val referenceId = backStackEntry.arguments?.getString("referenceId")
+            NotificationDetailScreen(
+                navController = navController,
+                notificationId = notificationId,
+                referenceId = referenceId // ERROR DE TIPEO CORREGIDO
+            )
         }
 
-        // --- REPORTAR USUARIO ---
         composable(Routes.ReportUser.route) {
-            ReportUserScreen()
+            ReportUserScreen(navController = navController)
         }
 
-        // --- MÓDULO HU-03: OFERTAS Y NECESIDADES ---
         composable(Routes.Offer.route) {
             OfferScreen()
         }

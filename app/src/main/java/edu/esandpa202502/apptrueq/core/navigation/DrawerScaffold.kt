@@ -35,13 +35,14 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
         NavigationItem("Dashboard", Icons.Filled.Home, Icons.Outlined.Home, route = Routes.Dashboard.route),
         NavigationItem("Explorar", Icons.Filled.Search, Icons.Outlined.Search, route = Routes.Explore.route),
         NavigationItem("Login", Icons.Filled.Person, Icons.Outlined.Person, route = Routes.Login.route),
-        NavigationItem("Perfil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Profile.route),
+        // NavigationItem("Perfil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Profile.route), // Comentado si Routes.Profile no existe
         NavigationItem("Oferta", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Offer.route),
         NavigationItem("Necesidad", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Need.route),
         NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
         NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, route = Routes.Notifications.route),
         NavigationItem("Reportar Usuario", Icons.Filled.Report, Icons.Outlined.Report, route = Routes.ReportUser.route),
-        NavigationItem("Propuestas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route),
+        // CORREGIDO: Título y ruta alineados con la arquitectura de "Offers"
+        NavigationItem("Ofertas Recibidas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.OffersReceived.route),
         NavigationItem("Cerrar Sesión", Icons.Filled.Logout, Icons.Outlined.Logout, route = Routes.Logout.route)
         
     )
@@ -82,8 +83,6 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
         },
         drawerState = drawerState
     ) { 
-        // --- ESTRUCTURA CORREGIDA ---
-        // Se añade un Scaffold para que el contenido principal (content) tenga una TopAppBar.
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -100,7 +99,6 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
                 )
             }
         ) { paddingValues ->
-            // El NavGraph se dibuja aquí, con el padding correcto de la TopAppBar.
             Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 content()
             }

@@ -11,9 +11,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
-/**
- * Estado de la UI para la pantalla de ofertas recibidas (HU-07), adaptado al flujo de `needs/offers`.
- */
 data class OffersUiState(
     val isLoading: Boolean = true,
     val offers: List<Offer> = emptyList(),
@@ -27,9 +24,6 @@ class ExchangeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(OffersUiState())
     val uiState: StateFlow<OffersUiState> = _uiState.asStateFlow()
 
-    /**
-     * Inicia la escucha de ofertas recibidas para un usuario específico.
-     */
     fun listenForReceivedOffers(userId: String) {
         viewModelScope.launch {
             repository.getReceivedOffers(userId)
@@ -41,18 +35,12 @@ class ExchangeViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Delega la aceptación de una oferta al repositorio.
-     */
     fun onAcceptOffer(offer: Offer) {
         viewModelScope.launch {
             repository.acceptOffer(offer)
         }
     }
 
-    /**
-     * Delega el rechazo de una oferta al repositorio.
-     */
     fun onRejectOffer(offer: Offer) {
         viewModelScope.launch {
             repository.rejectOffer(offer)
