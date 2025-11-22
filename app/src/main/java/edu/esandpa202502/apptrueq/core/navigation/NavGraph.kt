@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import com.google.firebase.auth.FirebaseAuth
 
 // --- Módulos principales ---
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
@@ -31,6 +32,9 @@ import edu.esandpa202502.apptrueq.need.ui.NeedScreen
  */
 @Composable
 fun NavGraph(navController: NavHostController) {
+    //val currentUser = FirebaseAuth.getInstance().currentUser
+    //val startDestination = if (currentUser != null) Routes.Dashboard.route else Routes.Login.route
+
     NavHost(
         navController = navController,
         startDestination = Routes.Login.route
