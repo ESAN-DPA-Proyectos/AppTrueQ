@@ -2,6 +2,7 @@ package edu.esandpa202502.apptrueq.explore.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,65 +14,80 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import edu.esandpa202502.apptrueq.R
 import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.model.PublicationType
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) }
+fun ExploreScreen(
+    navController: NavController,
+    exploreViewModel: ExploreViewModel = viewModel() // Inyecta el ViewModel
+) {
+    // La UI ahora obtiene el estado directamente desde el ViewModel
+    val uiState by exploreViewModel.uiState
     val tabs = listOf("Ofertas", "Necesidades")
-
-    // Sample data
-    val publications = remember {
-        listOf(
-            Publication("1", "Laptop Gamer", "Laptop en buen estado", "Tecnología", "Lima", "https://picsum.photos/id/10/200/300", Date(), "user1", PublicationType.OFFER),
-            Publication("2", "Libro de Kotlin", "Busco libro de Kotlin", "Libros", "Surco", "https://picsum.photos/id/20/200/300", Date(), "user2", PublicationType.NEED),
-            Publication("3", "Ropa de invierno", "Casaca talla M", "Ropa", "Miraflores", "https://picsum.photos/id/30/200/300", Date(), "user3", PublicationType.OFFER)
-        )
-    }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         Spacer(modifier = Modifier.padding(12.dp))
-        Text(text = "Explorar Ofertas y Necesidades", modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = "Explorar Ofertas y Necesidades",
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.titleLarge
+        )
 
-        TabRow(selectedTabIndex = selectedTab) {
+        // Los Tabs ahora reaccionan a los eventos del ViewModel
+        TabRow(
+            selectedTabIndex = uiState.selectedTabIndex,
+            containerColor = Color.Transparent,
+            contentColor = Color.Black,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.selectedTabIndex]),
+                    color = Color.Black
+                )
+            }
+        ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = { Text(title) }
+                    selected = uiState.selectedTabIndex == index,
+                    onClick = { exploreViewModel.onTabChanged(index) }, // Notifica al ViewModel del cambio
+                    text = { Text(title) },
+                    selectedContentColor = Color.Black,
+                    unselectedContentColor = Color.Gray
                 )
             }
         }
 
-        SearchBar(searchQuery = searchQuery, onSearchQueryChange = { searchQuery = it })
+        // SearchBar notifica al ViewModel del cambio de texto
+        SearchBar(
+            searchQuery = uiState.searchQuery,
+            onSearchQueryChange = { exploreViewModel.onSearchQueryChanged(it) }
+        )
 
         Row(
             modifier = Modifier
@@ -79,40 +95,50 @@ fun ExploreScreen(navController: NavController) {
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { /* TODO: Handle category filter */ }) {
+            val buttonColors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            )
+
+            Button(onClick = { /* TODO: HU-05 Handle category filter */ }, colors = buttonColors) {
                 Text("Categoría")
             }
-            Button(onClick = { /* TODO: Handle location filter */ }) {
+            Button(onClick = { /* TODO: HU-05 Handle location filter */ }, colors = buttonColors) {
                 Text("Ubicación")
             }
-            Button(onClick = { /* TODO: Handle date filter */ }) {
+            Button(onClick = { /* TODO: HU-05 Handle date filter */ }, colors = buttonColors) {
                 Text("Fecha")
             }
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 8.dp)
-        ) {
-            val filteredList = publications.filter {
-                val typeMatches = if (selectedTab == 0) it.type == PublicationType.OFFER else it.type == PublicationType.NEED
-                val queryMatches = it.title.contains(searchQuery, ignoreCase = true) || it.description.contains(searchQuery, ignoreCase = true)
-                typeMatches && queryMatches
+        // Muestra un indicador de carga mientras se obtienen los datos
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.Black)
             }
-
-            if (filteredList.isNotEmpty()) {
-                items(filteredList) { publication ->
-                    PublicationCard(publication = publication) { 
-                        navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
+        } else {
+            // Muestra la lista de publicaciones o el mensaje de "no encontrado"
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp)
+            ) {
+                if (uiState.filteredPublications.isNotEmpty()) {
+                    items(uiState.filteredPublications) { publication ->
+                        PublicationCard(publication = publication) {
+                            navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
+                        }
                     }
-                }
-            } else {
-                item {
-                    Text(
-                        text = "No se encontraron publicaciones con los criterios seleccionados.",
-                        modifier = Modifier.padding(16.dp)
-                    )
+                } else {
+                    item {
+                        Text(
+                            text = "No se encontraron publicaciones con los criterios seleccionados.",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -133,10 +159,10 @@ fun PublicationCard(publication: Publication, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             val painter = rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current).data(data = publication.imageUrl).apply(block = fun ImageRequest.Builder.() {
+                ImageRequest.Builder(LocalContext.current).data(data = publication.imageUrl).apply {
                     crossfade(true)
                     placeholder(R.drawable.ic_launcher_background)
-                }).build()
+                }.build()
             )
 
             Image(
