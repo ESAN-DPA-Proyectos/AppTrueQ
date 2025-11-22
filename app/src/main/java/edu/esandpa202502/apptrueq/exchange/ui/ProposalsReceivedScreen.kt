@@ -1,230 +1,133 @@
 package edu.esandpa202502.apptrueq.exchange.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-
-data class Proposal(
-    val id: Int,
-    val from: String,
-    val offer: String,
-    val message: String,
-    val date: String,
-    val status: String,
-    val userImage: Int
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import edu.esandpa202502.apptrueq.model.Offer
+import edu.esandpa202502.apptrueq.exchange.viewmodel.ExchangeViewModel
+import edu.esandpa202502.apptrueq.exchange.viewmodel.OffersUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProposalsReceivedScreen() {
-    var proposals by remember {
-        mutableStateOf(
-            listOf(
-                Proposal(
-                    1,
-                    "Juan Rodriguez",
-                    "Ofrezco Laptop y Computadoras",
-                    "Te ofrezco Laptop Apple i9",
-                    "25/09/2025 -- 10:25 am",
-                    "Pendiente",
-                    android.R.drawable.ic_dialog_info
-                ),
-                Proposal(
-                    2,
-                    "Marilyn Paira",
-                    "Libros de programación",
-                    "Necesito libro Phyton 3.07",
-                    "17/07/2025 -- 11:17 am",
-                    "Pendiente",
-                    android.R.drawable.ic_dialog_info
-                )
-            )
-        )
+fun OffersReceivedScreen(
+    navController: NavController,
+    exchangeViewModel: ExchangeViewModel = viewModel()
+) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val uiState by exchangeViewModel.uiState.collectAsState()
+
+    LaunchedEffect(currentUser) {
+        currentUser?.uid?.let {
+            exchangeViewModel.listenForReceivedOffers(it)
+        }
     }
-
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedProposalId by remember { mutableStateOf<Int?>(null) }
-    var actionToConfirm by remember { mutableStateOf<String?>(null) }
-
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Propuestas Recibidas") },
+                title = { Text("Ofertas Recibidas") },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: back navigation */ }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 }
             )
         }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
         ) {
-            items(proposals) { proposal ->
-                ProposalCard(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    proposal = proposal,
-                    onAcceptClick = {
-                        selectedProposalId = proposal.id
-                        actionToConfirm = "accept"
-                        showDialog = true
-                    },
-                    onRejectClick = {
-                        selectedProposalId = proposal.id
-                        actionToConfirm = "reject"
-                        showDialog = true
-                    }
-                )
-            }
-        }
-
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("¿Está seguro de esta acción?") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            // Actualizar estado local
-                            proposals = proposals.map {
-                                if (it.id == selectedProposalId) {
-                                    it.copy(
-                                        status = if (actionToConfirm == "accept")
-                                            "Aceptado" else "Rechazado"
-                                    )
-                                } else it
-                            }
-
-                            // Aviso visual
-                            scope.launch {
-                                val msg = if (actionToConfirm == "accept")
-                                    "Propuesta aceptada correctamente"
-                                else
-                                    "Propuesta rechazada"
-                                snackbarHostState.showSnackbar(msg)
-                            }
-
-                            showDialog = false
-                        }
-                    ) {
-                        Text("SI")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("NO")
-                    }
+            when {
+                uiState.isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-            )
+                uiState.error != null -> {
+                    Text(
+                        text = "Error: ${uiState.error}",
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                uiState.offers.isEmpty() -> {
+                    Text(
+                        text = "No tienes ofertas pendientes.",
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                else -> {
+                    OffersList(
+                        offers = uiState.offers,
+                        onAccept = { exchangeViewModel.onAcceptOffer(it) },
+                        onReject = { exchangeViewModel.onRejectOffer(it) }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun ProposalCard(
-    proposal: Proposal,
-    onAcceptClick: () -> Unit,
-    onRejectClick: () -> Unit,
-    modifier: Modifier = Modifier
+private fun OffersList(
+    offers: List<Offer>,
+    onAccept: (Offer) -> Unit,
+    onReject: (Offer) -> Unit
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = proposal.userImage),
-                    contentDescription = "User Image",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "De: ${proposal.from}", fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Oferta: \"${proposal.offer}\"")
-            Text(text = "Mensaje: \"${proposal.message}\"")
-            Text(text = "Fecha: ${proposal.date}")
-            Text(text = "Estado: \"${proposal.status}\"")
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val areButtonsEnabled = proposal.status == "Pendiente"
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = onAcceptClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                    enabled = areButtonsEnabled
-                ) { Text("Aceptar", color = Color.White) }
-
-                Button(
-                    onClick = onRejectClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                    enabled = areButtonsEnabled
-                ) { Text("Rechazar", color = Color.White) }
-            }
+        items(offers, key = { it.id }) { offer ->
+            OfferCard(offer = offer, onAccept = { onAccept(offer) }, onReject = { onReject(offer) })
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun ProposalsReceivedScreenPreview() {
-    ProposalsReceivedScreen()
+private fun OfferCard(
+    offer: Offer,
+    onAccept: () -> Unit,
+    onReject: () -> Unit
+) {
+    Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Oferta de: ${offer.ownerName}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text("Para tu necesidad: \"${offer.needText}\"")
+            Text("A cambio de: \"${offer.title}\"")
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onAccept, modifier = Modifier.weight(1f)) {
+                    Text("Aceptar")
+                }
+                Button(onClick = onReject, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                    Text("Rechazar")
+                }
+            }
+        }
+    }
 }
