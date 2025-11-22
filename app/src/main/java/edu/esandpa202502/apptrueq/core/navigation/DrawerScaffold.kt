@@ -41,8 +41,8 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
         NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
         NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, route = Routes.Notifications.route),
         NavigationItem("Reportar Usuario", Icons.Filled.Report, Icons.Outlined.Report, route = Routes.ReportUser.route),
-        NavigationItem("Propuestas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route)
-
+        NavigationItem("Propuestas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route),
+        NavigationItem("Cerrar Sesión", Icons.Filled.Logout, Icons.Outlined.Logout, route = Routes.Logout.route)
     )
 
     ModalNavigationDrawer(
