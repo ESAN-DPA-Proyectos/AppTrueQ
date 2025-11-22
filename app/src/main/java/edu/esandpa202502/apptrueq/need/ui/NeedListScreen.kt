@@ -10,13 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import edu.esandpa202502.apptrueq.model.Need
-import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
+import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NeedListScreen(vm: TradeViewModel) {
+fun NeedListScreen(vm: NeedViewModel) {
     val needs by vm.needs.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }

@@ -5,13 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
+import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NeedScreen(vm: TradeViewModel = viewModel()) {
+fun NeedScreen(vm: NeedViewModel = viewModel()) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Publicar Necesidad", "Mis Necesidades")
 
@@ -27,8 +26,7 @@ fun NeedScreen(vm: TradeViewModel = viewModel()) {
                     onClick = {
                         showSuccessDialog = false
                         selectedTabIndex = 1 // Cambia a la pestaña de lista
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    }
                 ) {
                     Text("OK")
                 }
