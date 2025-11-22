@@ -1,13 +1,13 @@
 package edu.esandpa202502.apptrueq.repository.exchange
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import edu.esandpa202502.apptrueq.model.Need
+import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Offer
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.tasks.await
 
 class ExchangeRepository {
@@ -15,43 +15,20 @@ class ExchangeRepository {
     private val db = FirebaseFirestore.getInstance()
 
     fun getReceivedOffers(userId: String): Flow<List<Offer>> = callbackFlow {
-        var offerListeners: List<ListenerRegistration> = emptyList()
-        val needsListener = db.collection("needs").whereEqualTo("userId", userId)
-            .addSnapshotListener { needsSnapshot, needsError ->
-                if (needsError != null) {
-                    close(needsError)
+        val listener = db.collectionGroup("offers")
+            .whereEqualTo("needOwnerId", userId)
+            .whereEqualTo("status", "PENDIENTE")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
                     return@addSnapshotListener
                 }
-                offerListeners.forEach { it.remove() }
-
-                val needs = needsSnapshot?.toObjects(Need::class.java) ?: emptyList()
-                if (needs.isEmpty()) {
-                    trySend(emptyList()).isSuccess
-                    return@addSnapshotListener
-                }
-
-                val combinedOffers = mutableMapOf<String, Offer>()
-                val newListeners = mutableListOf<ListenerRegistration>()
-                needs.forEach { need ->
-                    if (need.id.isNotEmpty()) {
-                        val listener = db.collection("needs").document(need.id).collection("offers")
-                            .whereEqualTo("status", "PENDIENTE")
-                            .addSnapshotListener { offersSnapshot, _ ->
-                                offersSnapshot?.documents?.forEach { doc ->
-                                    doc.toObject(Offer::class.java)?.let { offer -> combinedOffers[doc.id] = offer }
-                                }
-                                trySend(combinedOffers.values.toList()).isSuccess
-                            }
-                        newListeners.add(listener)
-                    }
-                }
-                offerListeners = newListeners
+                // SOLUCIÓN: Usar el método base `toObjects` en lugar de la extensión KTX
+                val offers = snapshot?.toObjects(Offer::class.java) ?: emptyList()
+                trySend(offers).isSuccess
             }
-        
-        awaitClose { 
-            needsListener.remove()
-            offerListeners.forEach { it.remove() } 
-        }
+        awaitClose { listener.remove() }
     }
 
     suspend fun acceptOffer(offer: Offer): Result<Unit> = try {
@@ -59,9 +36,11 @@ class ExchangeRepository {
             transaction ->
             val offerRef = db.collection("needs").document(offer.needId).collection("offers").document(offer.id)
             val needRef = db.collection("needs").document(offer.needId)
+
             transaction.update(offerRef, "status", "ACEPTADA")
             transaction.update(needRef, "status", "COMPLETADA")
 
+            // Crear notificaciones
             val notificationToOffererRef = db.collection("notifications").document()
             val notificationToNeedOwnerRef = db.collection("notifications").document()
             val notificationToOfferer = NotificationItem(userId = offer.ownerId, title = "¡Tu oferta fue aceptada!", message = "El dueño de '${offer.needText}' aceptó tu oferta por '${offer.title}'.", type = "offer_accepted")
@@ -90,35 +69,28 @@ class ExchangeRepository {
         Result.failure(e)
     }
 
-    fun getTradeHistory(userId: String): Flow<List<Offer>> = callbackFlow {
-        val allNeedsListener = db.collection("needs").addSnapshotListener { allNeedsSnapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
-            }
-            val allNeeds = allNeedsSnapshot?.toObjects(Need::class.java) ?: emptyList()
-            if (allNeeds.isEmpty()) {
-                trySend(emptyList()).isSuccess
-                return@addSnapshotListener
-            }
+    fun getOfferHistory(userId: String): Flow<List<Offer>> {
+        val sentOffersFlow = getOffersByField("ownerId", userId)
+        val receivedOffersFlow = getOffersByField("needOwnerId", userId)
 
-            val combinedHistory = mutableMapOf<String, Offer>()
-            allNeeds.forEach { need ->
-                if (need.id.isNotEmpty()) {
-                    db.collection("needs").document(need.id).collection("offers")
-                        .whereIn("status", listOf("ACEPTADA", "COMPLETADA"))
-                        .addSnapshotListener { offersSnapshot, _ ->
-                            offersSnapshot?.documents?.forEach { doc ->
-                                val offer = doc.toObject(Offer::class.java)
-                                if (offer != null && (offer.ownerId == userId || offer.needOwnerId == userId)) {
-                                    combinedHistory[doc.id] = offer
-                                }
-                            }
-                            trySend(combinedHistory.values.toList()).isSuccess
-                        }
-                }
-            }
+        return combine(sentOffersFlow, receivedOffersFlow) { sent, received ->
+            (sent + received).distinctBy { it.id }.sortedByDescending { it.createdAt }
         }
-        awaitClose { allNeedsListener.remove() }
+    }
+
+    private fun getOffersByField(fieldName: String, userId: String): Flow<List<Offer>> = callbackFlow {
+        val listener = db.collectionGroup("offers")
+            .whereEqualTo(fieldName, userId)
+            .whereIn("status", listOf("ACEPTADA", "RECHAZADA"))
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                // SOLUCIÓN: Usar el método base `toObjects` en lugar de la extensión KTX
+                val offers = snapshot?.toObjects(Offer::class.java) ?: emptyList()
+                trySend(offers).isSuccess
+            }
+        awaitClose { listener.remove() }
     }
 }

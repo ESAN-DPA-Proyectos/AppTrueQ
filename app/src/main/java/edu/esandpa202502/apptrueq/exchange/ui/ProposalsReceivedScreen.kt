@@ -26,8 +26,7 @@ fun OffersReceivedScreen(
     exchangeViewModel: ExchangeViewModel = viewModel()
 ) {
     val currentUser = FirebaseAuth.getInstance().currentUser
-    // CORREGIDO: Se observa la propiedad `offersUiState` que es la correcta para esta pantalla.
-    val uiState by exchangeViewModel.offersUiState.collectAsState()
+    val uiState by exchangeViewModel.uiState.collectAsState()
 
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let {
