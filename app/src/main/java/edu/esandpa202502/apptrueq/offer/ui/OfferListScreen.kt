@@ -8,11 +8,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.esandpa202502.apptrueq.offer.ui.components.OfferCard
-import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
+import edu.esandpa202502.apptrueq.offer.viewmodel.OfferViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfferListScreen(vm: TradeViewModel) {
+fun OfferListScreen(vm: OfferViewModel) {
     val offers by vm.offers.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
