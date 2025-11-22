@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.esandpa202502.apptrueq.offer.viewmodel.OfferViewModel
+import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfferScreen(vm: OfferViewModel = viewModel()) {
+fun OfferScreen(vm: TradeViewModel = viewModel()) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showSuccessDialog by remember { mutableStateOf(false) }
 

@@ -10,12 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
+import edu.esandpa202502.apptrueq.model.Need
+import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NeedFormScreen(
-    vm: NeedViewModel,
+    vm: TradeViewModel,
     onSuccess: () -> Unit
 ) {
     var description by remember { mutableStateOf("") }
@@ -83,7 +84,14 @@ fun NeedFormScreen(
 
         Button(
             onClick = {
-                vm.addNeed(description, category)
+                val newNeed = Need(
+                    text = description,
+                    category = category,
+                    status = "ACTIVE",
+                    // NOTA: El ownerId debe ser reemplazado por el ID del usuario autenticado
+                    ownerId = ""
+                )
+                vm.addNeed(newNeed)
                 description = ""
                 category = ""
                 onSuccess()
