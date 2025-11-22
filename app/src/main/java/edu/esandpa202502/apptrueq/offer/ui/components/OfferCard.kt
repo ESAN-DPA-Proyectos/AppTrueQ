@@ -6,11 +6,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import edu.esandpa202502.apptrueq.model.Offer
 import java.text.SimpleDateFormat
@@ -28,15 +27,23 @@ fun OfferCard(offer: Offer) {
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(offer.title, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                Text(offer.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                 if (offer.category.isNotEmpty()) {
-                    Surface(shape = MaterialTheme.shapes.small, color = Color.DarkGray) {
-                        Text(offer.category, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 12.sp, color = Color.White)
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Text(
+                            text = offer.category, 
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), 
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 }
             }
 
-            Text(date, fontSize = 12.sp, color = Color.Gray)
+            Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -44,22 +51,25 @@ fun OfferCard(offer: Offer) {
                 Image(
                     painter = rememberAsyncImagePainter(model = offer.photos[0]),
                     contentDescription = offer.title,
-                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    modifier = Modifier.fillMaxWidth().height(150.dp).clip(MaterialTheme.shapes.medium),
                     contentScale = ContentScale.Crop
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(offer.description, fontSize = 14.sp)
+            Text(offer.description, style = MaterialTheme.typography.bodyMedium)
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text("Busco: ${offer.needText}", fontWeight = FontWeight.SemiBold)
+            Text("Busco: ${offer.needText}", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.End, // Se alinean al final
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 CardButton(text = "Ver")
                 CardButton(text = "Editar")
                 CardButton(text = "Borrar")
@@ -70,11 +80,7 @@ fun OfferCard(offer: Offer) {
 
 @Composable
 private fun CardButton(text: String, onClick: () -> Unit = {}) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        modifier = Modifier.defaultMinSize(minWidth = 90.dp)
-    ) {
+    TextButton(onClick = onClick) {
         Text(text.uppercase())
     }
 }

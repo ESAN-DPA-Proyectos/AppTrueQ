@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,8 +63,8 @@ fun OfferFormScreen(
         )
         Text(
             text = "${title.length} caracteres (mínimo 5)",
-            color = Color.Gray,
-            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.align(Alignment.Start)
         )
 
@@ -81,8 +80,8 @@ fun OfferFormScreen(
         )
         Text(
             text = "${description.length} caracteres (mínimo 20)",
-            color = Color.Gray,
-            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.align(Alignment.Start)
         )
 
@@ -136,21 +135,19 @@ fun OfferFormScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Botón para subir imágenes
-        Button(
+        // Botón para subir imágenes (secundario)
+        OutlinedButton(
             onClick = { imagePicker.launch("image/*") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
         ) {
             Icon(
                 imageVector = Icons.Filled.Upload,
                 contentDescription = null,
-                tint = Color.White
             )
             Spacer(Modifier.width(8.dp))
-            Text(text = "Subir Imágenes", color = Color.White)
+            Text(text = "Subir Imágenes")
         }
 
         // Mostrar imágenes seleccionadas
@@ -174,7 +171,7 @@ fun OfferFormScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Botón de publicar
+        // Botón de publicar (principal)
         Button(
             onClick = {
                 val newOffer = Offer(
@@ -198,10 +195,9 @@ fun OfferFormScreen(
             enabled = isValid,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                .height(48.dp)
         ) {
-            Text(text = "Publicar Oferta", color = Color.White)
+            Text(text = "Publicar Oferta")
         }
     }
 }

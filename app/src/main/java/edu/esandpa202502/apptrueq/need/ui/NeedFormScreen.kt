@@ -7,9 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import edu.esandpa202502.apptrueq.model.Need
 import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
 
@@ -42,13 +40,13 @@ fun NeedFormScreen(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
                 text = "${description.length}/200 caracteres",
-                color = Color.Gray,
-                fontSize = 12.sp
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall
             )
             Text(
                 text = "Mínimo 5 caracteres",
-                color = Color.Gray,
-                fontSize = 12.sp
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
@@ -97,10 +95,9 @@ fun NeedFormScreen(
                 onSuccess()
             },
             enabled = isValid,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            Text(text = "Publicar Necesidad", color = Color.White)
+            Text(text = "Publicar Necesidad")
         }
     }
 }
