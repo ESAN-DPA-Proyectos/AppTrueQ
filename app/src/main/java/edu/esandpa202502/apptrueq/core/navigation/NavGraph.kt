@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 // --- Módulos principales ---
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
+import edu.esandpa202502.apptrueq.auth.ui.Logout
 import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
@@ -31,12 +32,12 @@ import edu.esandpa202502.apptrueq.need.ui.NeedScreen
  */
 @Composable
 fun NavGraph(navController: NavHostController) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val startDestination = if (currentUser != null) Routes.Dashboard.route else Routes.Login.route
+    //val currentUser = FirebaseAuth.getInstance().currentUser
+    //val startDestination = if (currentUser != null) Routes.Dashboard.route else Routes.Login.route
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = Routes.Login.route
     ) {
         // --- DASHBOARD ---
         composable(Routes.Dashboard.route) {
@@ -50,6 +51,10 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Routes.Register.route) {
             RegisterScreen(navController = navController)
+        }
+
+        composable(Routes.Logout.route) {
+            Logout(navController = navController)
         }
 
         // --- EXPLORAR PUBLICACIONES ---

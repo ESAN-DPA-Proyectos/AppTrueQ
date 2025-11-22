@@ -11,6 +11,7 @@ sealed class Routes(val route: String) {
     object Login : Routes("auth")
     object Profile : Routes("profile")
     object Register : Routes("register")
+    object Logout : Routes("logout")
 
     // --- MÓDULO HU-03: OFERTAS Y NECESIDADES ---
     object Offer : Routes("offer")
