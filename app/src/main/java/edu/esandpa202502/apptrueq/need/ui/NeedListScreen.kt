@@ -12,13 +12,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.esandpa202502.apptrueq.model.Need
-import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
+import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NeedListScreen(vm: NeedViewModel) {
+fun NeedListScreen(vm: TradeViewModel) {
     val needs by vm.needs.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
@@ -26,7 +26,7 @@ fun NeedListScreen(vm: NeedViewModel) {
 
     val filteredNeeds = needs.filter {
         val matchesCategory = selectedCategory == "Todas las categorías" || it.category == selectedCategory
-        val matchesSearch = it.description.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = it.text.contains(searchQuery, ignoreCase = true)
         matchesCategory && matchesSearch
     }
 
@@ -95,7 +95,7 @@ fun NeedListScreen(vm: NeedViewModel) {
 fun NeedCard(need: Need) {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
     sdf.timeZone = TimeZone.getTimeZone("America/Lima")
-    val date = sdf.format(need.createdAt)
+    val date = need.createdAt?.let { sdf.format(it) } ?: ""
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -115,7 +115,7 @@ fun NeedCard(need: Need) {
 
             Text(date, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
 
-            Text(need.description, fontSize = 14.sp)
+            Text(need.text, fontSize = 14.sp)
 
             Spacer(Modifier.height(10.dp))
 
