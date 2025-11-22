@@ -6,10 +6,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import com.google.firebase.auth.FirebaseAuth
 
 // --- Módulos principales ---
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
+import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
 import edu.esandpa202502.apptrueq.exchange.ui.ProposalsReceivedScreen
@@ -29,18 +31,25 @@ import edu.esandpa202502.apptrueq.need.ui.NeedScreen
  */
 @Composable
 fun NavGraph(navController: NavHostController) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val startDestination = if (currentUser != null) Routes.Dashboard.route else Routes.Login.route
+
     NavHost(
         navController = navController,
-        startDestination = Routes.Dashboard.route
+        startDestination = startDestination
     ) {
         // --- DASHBOARD ---
         composable(Routes.Dashboard.route) {
             DashboardScreen(navController = navController)
         }
 
-        // --- LOGIN ---
+        // --- AUTH ---
         composable(Routes.Login.route) {
             LoginScreen(navController = navController)
+        }
+
+        composable(Routes.Register.route) {
+            RegisterScreen(navController = navController)
         }
 
         // --- EXPLORAR PUBLICACIONES ---
@@ -62,7 +71,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         // --- PROPUESTAS RECIBIDAS ---
-        composable(Routes.Proposals_received.route) {
+        composable(Routes.ProposalsReceived.route) {
             ProposalsReceivedScreen()
         }
 
@@ -89,7 +98,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         // --- REPORTAR USUARIO ---
-        composable(Routes.Report_user.route) {
+        composable(Routes.ReportUser.route) {
             ReportUserScreen()
         }
 

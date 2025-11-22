@@ -1,5 +1,6 @@
 package edu.esandpa202502.apptrueq.auth.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -13,21 +14,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import edu.esandpa202502.apptrueq.core.navigation.Routes
+import edu.esandpa202502.apptrueq.remote.firebase.FirebaseAuthManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-
-fun RegisterScreen(
-    modifier: Modifier = Modifier
-) {
+fun RegisterScreen(navController : NavController) {
     var name by remember  { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+
     Column(
-        modifier = modifier.padding(16.dp)
+        modifier = Modifier.padding(16.dp)
     ){
         Text(text = "Registro de Usuario", style = MaterialTheme.typography.titleLarge)
 
@@ -63,7 +71,31 @@ fun RegisterScreen(
 
         // Botón para registrar al usuario
         Button(
-            onClick = {}
+            onClick = {
+                if(name.isNotBlank()
+                    && password.isNotBlank()
+                    && password == confirmPassword) {
+
+                    CoroutineScope(Dispatchers.Main).launch {
+
+                        val result = FirebaseAuthManager.registerUser(name, email, password)
+                        if(result.isSuccess){
+                            navController.navigate(Routes.Login.route) {
+                                popUpTo(Routes.Register.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+
+                        }else{
+                            val error = result.exceptionOrNull()?.message?: "Error desconocido"
+                            Toast.makeText(context,
+                                error,
+                                Toast.LENGTH_LONG).show()
+                        }
+                    }
+
+
+                }
+            }
         ) {
             Text(text = "Registrar")
         }

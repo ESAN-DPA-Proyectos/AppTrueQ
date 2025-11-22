@@ -10,6 +10,7 @@ sealed class Routes(val route: String) {
     object Explore : Routes("explore")
     object Login : Routes("auth")
     object Profile : Routes("profile")
+    object Register : Routes("register")
 
     // --- MÓDULO HU-03: OFERTAS Y NECESIDADES ---
     object Offer : Routes("offer")
@@ -28,10 +29,10 @@ sealed class Routes(val route: String) {
         fun createRoute(tradeId: String) = "trade_detail/$tradeId"
     }
 
-    object Proposals_received : Routes("proposalsReceived")
+    object ProposalsReceived : Routes("proposalsReceived")
 
     // --- MÓDULO DE REPORTES ---
-    object Report_user : Routes("report")
+    object ReportUser : Routes("report")
 
     // --- MÓDULO DE NOTIFICACIONES ---
     object Notifications : Routes("notifications")
