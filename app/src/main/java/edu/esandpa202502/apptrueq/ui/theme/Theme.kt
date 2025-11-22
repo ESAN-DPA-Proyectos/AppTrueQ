@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val LightColors = lightColorScheme(
-    primary = Purple80,
+    primary = Purple40, // Usamos el violeta oscuro para el tema claro
     secondary = PurpleGrey80,
     tertiary = Pink80
 )

@@ -7,10 +7,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import edu.esandpa202502.apptrueq.model.Need
 import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
 import java.text.SimpleDateFormat
@@ -33,17 +31,9 @@ fun NeedListScreen(vm: TradeViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "Mis Necesidades",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(12.dp)) // Espacio para que no se pegue a las pestañas
 
         OutlinedTextField(
             value = searchQuery,
@@ -102,24 +92,46 @@ fun NeedCard(need: Need) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(shape = MaterialTheme.shapes.small, color = Color.Gray) {
-                    Text("Activo", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 12.sp, color = Color.White)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Text(
+                        text = "Activo",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
                 if (need.category.isNotEmpty()) {
-                    Surface(shape = MaterialTheme.shapes.small, color = Color.DarkGray) {
-                        Text(need.category, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 12.sp, color = Color.White)
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    ) {
+                        Text(
+                            text = need.category,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
                     }
                 }
+                Spacer(modifier = Modifier.weight(1f))
+                Text(date, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            Text(date, fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(Modifier.height(8.dp))
 
-            Text(need.text, fontSize = 14.sp)
+            Text(need.text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
 
-            Spacer(Modifier.height(10.dp))
-
-            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.End, // Se alinean al final
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 CardButton(text = "Ver")
                 CardButton(text = "Editar")
                 CardButton(text = "Borrar")
@@ -130,11 +142,7 @@ fun NeedCard(need: Need) {
 
 @Composable
 private fun CardButton(text: String, onClick: () -> Unit = {}) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        modifier = Modifier.defaultMinSize(minWidth = 90.dp)
-    ) {
+    TextButton(onClick = onClick) {
         Text(text.uppercase())
     }
 }
