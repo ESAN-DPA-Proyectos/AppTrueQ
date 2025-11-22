@@ -17,15 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import edu.esandpa202502.apptrueq.model.Offer
-import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
+import edu.esandpa202502.apptrueq.offer.viewmodel.OfferViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferFormScreen(
-    vm: TradeViewModel,
+    vm: OfferViewModel,
     onSuccess: () -> Unit = {}
 ) {
     // Campos del formulario

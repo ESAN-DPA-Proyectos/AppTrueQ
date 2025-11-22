@@ -9,12 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.esandpa202502.apptrueq.model.Need
-import edu.esandpa202502.apptrueq.ui.viewmodel.TradeViewModel
+import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NeedFormScreen(
-    vm: TradeViewModel,
+    vm: NeedViewModel,
     onSuccess: () -> Unit
 ) {
     var description by remember { mutableStateOf("") }
