@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "110342851396",
+    "project_id": "apptrueqdpa202502",
+    "storage_bucket": "apptrueqdpa202502.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110342851396:android:5831fd083b39a4af3aa511",
+        "android_client_info": {
+          "package_name": "edu.esandpa202502.apptrueq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt-8jDIQYwljQUZrPMomS5T7uaYSbm3d4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
