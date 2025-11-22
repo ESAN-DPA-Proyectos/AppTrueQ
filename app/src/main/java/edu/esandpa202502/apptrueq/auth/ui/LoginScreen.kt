@@ -1,5 +1,6 @@
 package edu.esandpa202502.apptrueq.auth.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,9 +16,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import edu.esandpa202502.apptrueq.core.navigation.Routes
+import edu.esandpa202502.apptrueq.remote.firebase.FirebaseAuthManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -28,6 +34,7 @@ fun LoginScreen(
 ){
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = modifier.padding(16.dp)
@@ -55,21 +62,31 @@ fun LoginScreen(
         // boton de iniciar sesion
         // 2. Implementamos la lógica de navegación.
         Button(onClick = {
-            // TODO: Aquí iría la lógica de verificación de usuario y contraseña con Firebase.
-            // Por ahora, simulamos un login exitoso.
-
-            // Navegamos al Dashboard y limpiamos la pila de navegación.
-            navController.navigate(Routes.Dashboard.route) {
-                // Esto elimina todas las pantallas anteriores (incluyendo Login) del historial.
-                popUpTo(0) { inclusive = true }
-                // Asegura que no tengamos múltiples copias del Dashboard.
-                launchSingleTop = true
+            if (email.isNotBlank() && password.isNotBlank()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    val result = FirebaseAuthManager.loginUser(email, password)
+                    if (result.isSuccess) {
+                        navController.navigate(Routes.Dashboard.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        val error = result.exceptionOrNull()?.message ?: "Error desconocido"
+                        Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }) {
             Text("Iniciar Sesión")
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
 
+        Button(onClick = { 
+            navController.navigate(Routes.Register.route)
+        }) {
+            Text("¿No tienes una cuenta? Regístrate")
+        }
     }
 
 }
