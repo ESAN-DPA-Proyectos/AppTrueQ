@@ -1,158 +1,135 @@
 package edu.esandpa202502.apptrueq.explore.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import edu.esandpa202502.apptrueq.R
+import coil.compose.AsyncImage
 import edu.esandpa202502.apptrueq.core.navigation.Routes
-import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.model.PublicationType
-import java.util.Date
+import edu.esandpa202502.apptrueq.model.Offer
+import edu.esandpa202502.apptrueq.offer.viewmodel.OfferViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(navController: NavController) {
+fun ExploreScreen(
+    navController: NavController,
+    offerViewModel: OfferViewModel = viewModel()
+) {
+    val uiState by offerViewModel.exploreUiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Ofertas", "Necesidades")
-
-    // Sample data
-    val publications = remember {
-        listOf(
-            Publication("1", "Laptop Gamer", "Laptop en buen estado", "Tecnología", "Lima", "https://picsum.photos/id/10/200/300", Date(), "user1", PublicationType.OFFER),
-            Publication("2", "Libro de Kotlin", "Busco libro de Kotlin", "Libros", "Surco", "https://picsum.photos/id/20/200/300", Date(), "user2", PublicationType.NEED),
-            Publication("3", "Ropa de invierno", "Casaca talla M", "Ropa", "Miraflores", "https://picsum.photos/id/30/200/300", Date(), "user3", PublicationType.OFFER)
-        )
-    }
+    var selectedCategory by remember { mutableStateOf("Todas las categorías") }
+    val categories = listOf("Todas las categorías", "Hogar", "Libros", "Servicios", "Tecnología")
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.padding(12.dp))
-        Text(text = "Explorar Ofertas y Necesidades", modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.titleLarge)
+        Text("Explorar Publicaciones", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(vertical = 16.dp))
 
-        TabRow(selectedTabIndex = selectedTab) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = { Text(title) }
-                )
-            }
-        }
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                offerViewModel.onExploreSearchQueryChanged(it)
+            },
+            label = { Text("Buscar en todas las publicaciones...") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        SearchBar(searchQuery = searchQuery, onSearchQueryChange = { searchQuery = it })
+        Spacer(Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { /* TODO: Handle category filter */ }) {
-                Text("Categoría")
-            }
-            Button(onClick = { /* TODO: Handle location filter */ }) {
-                Text("Ubicación")
-            }
-            Button(onClick = { /* TODO: Handle date filter */ }) {
-                Text("Fecha")
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 8.dp)
-        ) {
-            val filteredList = publications.filter {
-                val typeMatches = if (selectedTab == 0) it.type == PublicationType.OFFER else it.type == PublicationType.NEED
-                val queryMatches = it.title.contains(searchQuery, ignoreCase = true) || it.description.contains(searchQuery, ignoreCase = true)
-                typeMatches && queryMatches
-            }
-
-            if (filteredList.isNotEmpty()) {
-                items(filteredList) { publication ->
-                    PublicationCard(publication = publication) { 
-                        navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
-                    }
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+            OutlinedTextField(
+                value = selectedCategory,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                categories.forEach { cat ->
+                    DropdownMenuItem(text = { Text(cat) }, onClick = {
+                        selectedCategory = cat
+                        offerViewModel.onExploreCategoryChanged(cat)
+                        expanded = false
+                    })
                 }
-            } else {
-                item {
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                uiState.isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                uiState.error != null -> {
                     Text(
-                        text = "No se encontraron publicaciones con los criterios seleccionados.",
-                        modifier = Modifier.padding(16.dp)
+                        text = "Error: ${uiState.error}",
+                        modifier = Modifier.align(Alignment.Center)
                     )
+                }
+                uiState.allOffers.isEmpty() -> {
+                    Text(
+                        text = "No se encontraron publicaciones.",
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(uiState.allOffers, key = { it.id }) { offer ->
+                            PublicationCard(publication = offer) { 
+                                // Navega al detalle de la publicación al hacer clic
+                                navController.navigate(Routes.PublicationDetail.createRoute(offer.id))
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PublicationCard(publication: Publication, onClick: () -> Unit) {
+fun PublicationCard(publication: Offer, onClick: () -> Unit) {
     Card(
-        onClick = onClick,
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val painter = rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current).data(data = publication.imageUrl).apply(block = fun ImageRequest.Builder.() {
-                    crossfade(true)
-                    placeholder(R.drawable.ic_launcher_background)
-                }).build()
-            )
-
-            Image(
-                painter = painter,
-                contentDescription = "Publication Image",
-                modifier = Modifier.size(80.dp),
+        Column {
+            AsyncImage(
+                model = publication.photos.firstOrNull(),
+                contentDescription = publication.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
                 contentScale = ContentScale.Crop
             )
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(text = publication.title, style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = publication.description, style = MaterialTheme.typography.bodySmall)
+            Column(Modifier.padding(16.dp)) {
+                Text(publication.title, style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(4.dp))
+                Text(publication.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                 Spacer(Modifier.height(8.dp))
+                // Botón para iniciar el flujo de trueque
+                Button(onClick = { /* TODO: Navegar a la pantalla para crear la oferta (Need) */ }) {
+                    Text("Realizar Oferta")
+                }
             }
         }
     }
