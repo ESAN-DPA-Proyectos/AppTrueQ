@@ -46,6 +46,7 @@ fun ReportUserScreen(navController: NavController, reportViewModel: ReportViewMo
             scope.launch {
                 snackbarHostState.showSnackbar("Reporte enviado correctamente.")
                 clearForm()
+                navController.popBackStack() // Vuelve atrás tras el éxito
             }
         }
         if (uiState.error != null) {
@@ -82,7 +83,6 @@ fun ReportUserScreen(navController: NavController, reportViewModel: ReportViewMo
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo de texto para el correo electrónico
                     OutlinedTextField(
                         value = reportedEmail,
                         onValueChange = { reportedEmail = it },
@@ -93,7 +93,6 @@ fun ReportUserScreen(navController: NavController, reportViewModel: ReportViewMo
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Motivo del reporte
                     ExposedDropdownMenuBox(expanded = isMenuExpanded, onExpandedChange = { isMenuExpanded = !isMenuExpanded }) {
                         OutlinedTextField(
                             value = reason,
@@ -142,7 +141,6 @@ fun ReportUserScreen(navController: NavController, reportViewModel: ReportViewMo
                                 onClick = {
                                     reportViewModel.submitReport(reportedEmail, reason, description)
                                 },
-                                // El botón se deshabilita si el formulario no es válido
                                 enabled = reportedEmail.isNotBlank() && reason != "Escoja motivo de reporte" && description.length >= 10
                             ) {
                                 Text("Enviar Reporte")
