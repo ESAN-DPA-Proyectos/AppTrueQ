@@ -30,8 +30,8 @@ fun NotificationDetailScreen(
     referenceId: String?,
     exchangeViewModel: ExchangeViewModel = viewModel()
 ) {
-    // 1. Buscamos la oferta correcta en la lista que ya tenemos en el ViewModel.
-    val uiState by exchangeViewModel.uiState.collectAsState()
+    // CORREGIDO: Se observa la propiedad `offersUiState` que contiene la lista necesaria.
+    val uiState by exchangeViewModel.offersUiState.collectAsState()
     val offerToShow = uiState.offers.find { it.id == referenceId }
 
     Scaffold(
