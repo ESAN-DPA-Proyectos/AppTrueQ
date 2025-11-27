@@ -83,7 +83,8 @@ fun LoginScreen(
             // 2. Implementamos la lógica de navegación.
 
 
-            Button(onClick = {
+            Button(
+                onClick = {
                 if (email.isNotBlank() && password.isNotBlank()) {
                     CoroutineScope(Dispatchers.Main).launch {
                         val result = FirebaseAuthManager.loginUser(email, password)
@@ -98,7 +99,9 @@ fun LoginScreen(
                         }
                     }
                 }
-            }) {
+            },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Iniciar Sesión")
             }
 
@@ -106,9 +109,12 @@ fun LoginScreen(
 
 
 
-            Button(onClick = {
+            Button(
+                onClick = { 
                 navController.navigate(Routes.Register.route)
-            }) {
+            },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("¿No tienes una cuenta? Regístrate")
             }
         }
