@@ -1,9 +1,7 @@
 package edu.esandpa202502.apptrueq.repository.exchange
 
-import android.net.Uri
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.storage.FirebaseStorage
 import edu.esandpa202502.apptrueq.model.Need
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Offer
@@ -15,62 +13,9 @@ import kotlinx.coroutines.tasks.await
 class ExchangeRepository {
 
     private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
-    // --- LÓGICA CORREGIDA PARA "MIS PUBLICACIONES" ---
-    fun getMyOffers(userId: String): Flow<List<Offer>> = callbackFlow {
-        val allNeedsListener = db.collection("needs").addSnapshotListener { allNeedsSnapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
-            }
-            val allNeeds = allNeedsSnapshot?.toObjects(Need::class.java) ?: emptyList()
-            if (allNeeds.isEmpty()) {
-                trySend(emptyList()).isSuccess
-                return@addSnapshotListener
-            }
-
-            val combinedOffers = mutableMapOf<String, Offer>()
-            allNeeds.forEach { need ->
-                if (need.id.isNotEmpty()) {
-                    db.collection("needs").document(need.id).collection("offers")
-                        .whereEqualTo("ownerId", userId) // Busca ofertas creadas por el usuario
-                        .addSnapshotListener { offersSnapshot, _ ->
-                            offersSnapshot?.documents?.forEach { doc ->
-                                doc.toObject(Offer::class.java)?.let { offer -> combinedOffers[doc.id] = offer }
-                            }
-                            trySend(combinedOffers.values.toList()).isSuccess
-                        }
-                }
-            }
-        }
-        awaitClose { allNeedsListener.remove() }
-    }
-
-    suspend fun addOfferAndNotify(offer: Offer, imageUris: List<Uri>): Offer {
-        val imageUrls = imageUris.map { uri ->
-            val imageRef = storage.reference.child("offer/${uri.lastPathSegment}")
-            imageRef.putFile(uri).await()
-            imageRef.downloadUrl.await().toString()
-        }
-        val offerWithImages = offer.copy(photos = imageUrls)
-        val batch = db.batch()
-        val offerRef = db.collection("needs").document(offer.needId).collection("offers").document()
-        val finalOffer = offerWithImages.copy(id = offerRef.id)
-        val notificationRef = db.collection("notifications").document()
-        val notification = NotificationItem(
-            id = notificationRef.id, userId = offer.needOwnerId, title = "¡Nueva Oferta Recibida!",
-            message = "${offer.ownerName} ha hecho una oferta para tu necesidad '${offer.needText}'.",
-            type = "new_offer", referenceId = offerRef.id
-        )
-        batch.set(offerRef, finalOffer)
-        batch.set(notificationRef, notification)
-        batch.commit().await()
-        return finalOffer
-    }
-
-    fun getReceivedOffers(userId: String): Flow<List<Offer>> = callbackFlow { 
-         var offerListeners = listOf<ListenerRegistration>()
+    fun getReceivedOffers(userId: String): Flow<List<Offer>> = callbackFlow {
+        var offerListeners: List<ListenerRegistration> = emptyList()
         val needsListener = db.collection("needs").whereEqualTo("userId", userId)
             .addSnapshotListener { needsSnapshot, needsError ->
                 if (needsError != null) {
@@ -78,6 +23,7 @@ class ExchangeRepository {
                     return@addSnapshotListener
                 }
                 offerListeners.forEach { it.remove() }
+
                 val needs = needsSnapshot?.toObjects(Need::class.java) ?: emptyList()
                 if (needs.isEmpty()) {
                     trySend(emptyList()).isSuccess
@@ -106,7 +52,7 @@ class ExchangeRepository {
             needsListener.remove()
             offerListeners.forEach { it.remove() } 
         }
-     }
+    }
 
     suspend fun acceptOffer(offer: Offer): Result<Unit> = try {
         db.runTransaction {
@@ -144,7 +90,7 @@ class ExchangeRepository {
         Result.failure(e)
     }
 
-    fun getOfferHistory(userId: String): Flow<List<Offer>> = callbackFlow {
+    fun getTradeHistory(userId: String): Flow<List<Offer>> = callbackFlow {
         val allNeedsListener = db.collection("needs").addSnapshotListener { allNeedsSnapshot, error ->
             if (error != null) {
                 close(error)
@@ -160,7 +106,7 @@ class ExchangeRepository {
             allNeeds.forEach { need ->
                 if (need.id.isNotEmpty()) {
                     db.collection("needs").document(need.id).collection("offers")
-                        .whereIn("status", listOf("ACEPTADA", "RECHAZADA"))
+                        .whereIn("status", listOf("ACEPTADA", "COMPLETADA"))
                         .addSnapshotListener { offersSnapshot, _ ->
                             offersSnapshot?.documents?.forEach { doc ->
                                 val offer = doc.toObject(Offer::class.java)
