@@ -1,8 +1,9 @@
 package edu.esandpa202502.apptrueq.model
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
-import java.util.Date
+
 
 /**
  * Representa una oferta que un usuario hace para una necesidad específica.
@@ -21,5 +22,5 @@ data class Offer(
     val photos: List<String> = emptyList(),
     val status: String = "PENDIENTE", // PENDIENTE, ACEPTADA, RECHAZADA
     @ServerTimestamp
-    val createdAt: Date? = null
+    val createdAt: Timestamp? = null
 )

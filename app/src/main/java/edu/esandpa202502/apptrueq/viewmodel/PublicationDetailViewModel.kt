@@ -89,7 +89,7 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
                     type = "new_proposal",
                     referenceId = proposalRef.id
                 )
-                notificationRepository.createNotification(notification)
+                notificationRepository.addNotification(notification)
 
                 _uiState.value = _uiState.value.copy(proposalSent = true)
 

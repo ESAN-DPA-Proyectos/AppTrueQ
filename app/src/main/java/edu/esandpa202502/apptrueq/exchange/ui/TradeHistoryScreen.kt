@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
-import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.Offer
 import edu.esandpa202502.apptrueq.exchange.viewmodel.ExchangeViewModel
 
@@ -36,7 +35,7 @@ fun TradeHistoryScreen(
 
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let {
-            exchangeViewModel.listenForTradeHistory(it)
+            exchangeViewModel.listenForHistory(it)
         }
     }
 
@@ -81,7 +80,7 @@ fun TradeHistoryScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(uiState.completedOffers, key = { it.id }) { offer ->
-                            HistoryCard(offer = offer, currentUserId = currentUser?.uid ?: "", onClick = { navController.navigate(Routes.TradeDetail.createRoute(offer.id))})
+                            HistoryCard(offer = offer, currentUserId = currentUser?.uid ?: "")
                         }
                     }
                 }
@@ -90,16 +89,14 @@ fun TradeHistoryScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HistoryCard(offer: Offer, currentUserId: String, onClick: () -> Unit) {
+private fun HistoryCard(offer: Offer, currentUserId: String) {
     val isAccepted = offer.status == "ACEPTADA"
     val cardColor = if (isAccepted) Color.Transparent else MaterialTheme.colorScheme.errorContainer
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        onClick = onClick
+        colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             val title = if (offer.ownerId == currentUserId) {

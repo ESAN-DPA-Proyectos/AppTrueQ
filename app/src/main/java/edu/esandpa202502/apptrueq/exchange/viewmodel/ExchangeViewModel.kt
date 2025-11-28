@@ -27,43 +27,41 @@ class ExchangeViewModel : ViewModel() {
 
     private val repository = ExchangeRepository()
 
-    private val _uiState = MutableStateFlow(OffersUiState())
-    val uiState: StateFlow<OffersUiState> = _uiState.asStateFlow()
-
-    private val _historyUiState = MutableStateFlow(HistoryUiState())
-    val historyUiState: StateFlow<HistoryUiState> = _historyUiState.asStateFlow()
+    private val _offersUiState = MutableStateFlow(OffersUiState())
+    val offersUiState: StateFlow<OffersUiState> = _offersUiState.asStateFlow()
 
     fun listenForReceivedOffers(userId: String) {
         viewModelScope.launch {
             repository.getReceivedOffers(userId)
-                .onStart { _uiState.value = OffersUiState(isLoading = true) }
-                .catch { e -> _uiState.value = OffersUiState(isLoading = false, error = e.message) }
+                .onStart { _offersUiState.value = OffersUiState(isLoading = true) }
+                .catch { e -> _offersUiState.value = OffersUiState(isLoading = false, error = e.message) }
                 .collect { offers ->
-                    _uiState.value = OffersUiState(isLoading = false, offers = offers)
-                }
-        }
-    }
-
-    fun listenForTradeHistory(userId: String) {
-        viewModelScope.launch {
-            repository.getTradeHistory(userId)
-                .onStart { _historyUiState.value = HistoryUiState(isLoading = true) }
-                .catch { e -> _historyUiState.value = HistoryUiState(isLoading = false, error = e.message) }
-                .collect { offers ->
-                    _historyUiState.value = HistoryUiState(isLoading = false, completedOffers = offers)
+                    // El repositorio ya ordena, no es necesario hacerlo aquí
+                    _offersUiState.value = OffersUiState(isLoading = false, offers = offers)
                 }
         }
     }
 
     fun onAcceptOffer(offer: Offer) {
-        viewModelScope.launch {
-            repository.acceptOffer(offer)
-        }
+        viewModelScope.launch { repository.acceptOffer(offer) }
     }
 
     fun onRejectOffer(offer: Offer) {
+        viewModelScope.launch { repository.rejectOffer(offer) }
+    }
+
+    private val _historyUiState = MutableStateFlow(HistoryUiState())
+    val historyUiState: StateFlow<HistoryUiState> = _historyUiState.asStateFlow()
+
+    fun listenForHistory(userId: String) {
         viewModelScope.launch {
-            repository.rejectOffer(offer)
+            repository.getOfferHistory(userId)
+                .onStart { _historyUiState.value = HistoryUiState(isLoading = true) }
+                .catch { e -> _historyUiState.value = HistoryUiState(isLoading = false, error = e.message) }
+                .collect { offers ->
+                    // El repositorio ya combina y ordena, no es necesario hacerlo aquí
+                    _historyUiState.value = HistoryUiState(isLoading = false, completedOffers = offers)
+                }
         }
     }
 }

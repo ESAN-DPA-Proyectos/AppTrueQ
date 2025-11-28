@@ -11,7 +11,8 @@ data class Publication(
     val imageUrl: String,
     val date: Date,
     val userId: String,
-    val type: PublicationType // "Offer" or "Need"
+    val type: PublicationType, // "Offer" or "Need"
+    val needText: String = "" // Texto de la necesidad asociada
 )
 
 enum class PublicationType {

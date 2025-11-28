@@ -8,23 +8,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import edu.esandpa202502.apptrueq.core.navigation.Routes
-import edu.esandpa202502.apptrueq.model.Offer
-import edu.esandpa202502.apptrueq.offer.viewmodel.OfferViewModel
+import edu.esandpa202502.apptrueq.model.Publication
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
-    navController: NavController,
-    offerViewModel: OfferViewModel = viewModel()
+    navController: NavController
 ) {
-    val uiState by offerViewModel.exploreUiState.collectAsState()
+    val viewModel: ExploreViewModel = viewModel(
+        factory = ExploreViewModelFactory(ExploreRepository())
+    )
+    val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas las categorías") }
     val categories = listOf("Todas las categorías", "Hogar", "Libros", "Servicios", "Tecnología")
@@ -40,7 +40,7 @@ fun ExploreScreen(
             value = searchQuery,
             onValueChange = {
                 searchQuery = it
-                offerViewModel.onExploreSearchQueryChanged(it)
+                viewModel.onSearchQueryChanged(it)
             },
             label = { Text("Buscar en todas las publicaciones...") },
             modifier = Modifier.fillMaxWidth()
@@ -61,7 +61,7 @@ fun ExploreScreen(
                 categories.forEach { cat ->
                     DropdownMenuItem(text = { Text(cat) }, onClick = {
                         selectedCategory = cat
-                        offerViewModel.onExploreCategoryChanged(cat)
+                        viewModel.onCategoryChanged(cat)
                         expanded = false
                     })
                 }
@@ -81,7 +81,7 @@ fun ExploreScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                uiState.allOffers.isEmpty() -> {
+                uiState.publications.isEmpty() -> {
                     Text(
                         text = "No se encontraron publicaciones.",
                         modifier = Modifier.align(Alignment.Center)
@@ -92,10 +92,9 @@ fun ExploreScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        items(uiState.allOffers, key = { it.id }) { offer ->
-                            PublicationCard(publication = offer) { 
-                                // Navega al detalle de la publicación al hacer clic
-                                navController.navigate(Routes.PublicationDetail.createRoute(offer.id))
+                        items(uiState.publications, key = { it.id }) { publication ->
+                            PublicationCard(publication = publication) { 
+                                navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
                             }
                         }
                     }
@@ -106,7 +105,7 @@ fun ExploreScreen(
 }
 
 @Composable
-fun PublicationCard(publication: Offer, onClick: () -> Unit) {
+fun PublicationCard(publication: Publication, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -115,7 +114,7 @@ fun PublicationCard(publication: Offer, onClick: () -> Unit) {
     ) {
         Column {
             AsyncImage(
-                model = publication.photos.firstOrNull(),
+                model = publication.imageUrl,
                 contentDescription = publication.title,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,7 +126,6 @@ fun PublicationCard(publication: Offer, onClick: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Text(publication.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                  Spacer(Modifier.height(8.dp))
-                // Botón para iniciar el flujo de trueque
                 Button(onClick = { /* TODO: Navegar a la pantalla para crear la oferta (Need) */ }) {
                     Text("Realizar Oferta")
                 }

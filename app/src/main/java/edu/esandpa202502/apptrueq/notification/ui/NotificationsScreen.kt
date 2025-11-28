@@ -1,5 +1,6 @@
 package edu.esandpa202502.apptrueq.notification.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material3.*
@@ -87,9 +87,8 @@ fun NotificationsScreen(
                     }
                     uiState.error != null -> {
                         Text(
-                            text = "No hay notificaciones en la base de datos.",
+                            text = "Error: ${uiState.error}",
                             modifier = Modifier.align(Alignment.Center),
-                            style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -103,22 +102,17 @@ fun NotificationsScreen(
                     }
                     else -> {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            items(filteredNotifications, key = { it.id!! }) { notification ->
+                            items(filteredNotifications, key = { it.id }) { notification ->
                                 NotificationCard(
                                     notification = notification,
                                     onClick = {
-                                        notification.id?.let { id ->
-                                            notificationViewModel.markAsRead(id)
-                                            navController.navigate(
-                                                Routes.NotificationDetail.createRoute(
-                                                    notificationId = id,
-                                                    referenceId = notification.referenceId
-                                                )
+                                        notificationViewModel.markAsRead(notification.id)
+                                        navController.navigate(
+                                            Routes.NotificationDetail.createRoute(
+                                                notificationId = notification.id,
+                                                referenceId = notification.referenceId
                                             )
-                                        }
-                                    },
-                                    onDeleteClick = { // <-- Acción de borrado
-                                        notification.id?.let { notificationViewModel.deleteNotification(it) }
+                                        )
                                     }
                                 )
                             }
@@ -130,20 +124,16 @@ fun NotificationsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationCard(
-    notification: NotificationItem,
-    onClick: () -> Unit,
-    onDeleteClick: () -> Unit // <-- Nuevo parámetro
-) {
+fun NotificationCard(notification: NotificationItem, onClick: () -> Unit) {
     val cardColor = if (notification.isRead) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
     val fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold
     val icon = if (notification.isRead) Icons.Default.MarkEmailRead else Icons.Default.MarkEmailUnread
 
     Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -152,10 +142,6 @@ fun NotificationCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = notification.title, fontWeight = fontWeight, style = MaterialTheme.typography.titleMedium)
                 Text(text = notification.message, style = MaterialTheme.typography.bodyMedium)
-            }
-            // --- Botón de Borrar ---
-            IconButton(onClick = onDeleteClick) {
-                Icon(Icons.Default.Close, contentDescription = "Eliminar Notificación")
             }
         }
     }

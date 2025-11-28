@@ -28,7 +28,7 @@ class PublicationRepository {
                         category = it.category ?: "Sin categoría",
                         location = "",
                         imageUrl = it.photos.firstOrNull() ?: "",
-                        date = it.createdAt?.toDate() ?: Date(), // CORREGIDO
+                        date = it.createdAt?.toDate() ?: Date(),
                         userId = it.ownerId ?: "",
                         type = PublicationType.OFFER,
                         needText = it.needText ?: ""
@@ -38,7 +38,7 @@ class PublicationRepository {
         }
 
         // Buscar en la colección 'needs'
-        val needsSnapshot = db.collection("needs").whereEqualTo("userId", userId).get().await()
+        val needsSnapshot = db.collection("needs").whereEqualTo("ownerId", userId).get().await()
         for (document in needsSnapshot.documents) {
             val need = document.toObject(Need::class.java)
             need?.let { it ->
@@ -50,8 +50,8 @@ class PublicationRepository {
                         category = it.category ?: "Sin categoría",
                         location = "",
                         imageUrl = "",
-                        date = it.createdAt?.toDate() ?: Date(), // CORREGIDO
-                        userId = it.userId ?: "",
+                        date = it.createdAt?.toDate() ?: Date(),
+                        userId = it.ownerId ?: "",
                         type = PublicationType.NEED,
                         needText = ""
                     )
@@ -74,7 +74,7 @@ class PublicationRepository {
                     category = it.category ?: "Sin categoría",
                     location = "",
                     imageUrl = it.photos.firstOrNull() ?: "",
-                    date = it.createdAt?.toDate() ?: Date(), // CORREGIDO
+                    date = it.createdAt?.toDate() ?: Date(),
                     userId = it.ownerId ?: "",
                     type = PublicationType.OFFER,
                     needText = it.needText ?: ""
@@ -93,8 +93,8 @@ class PublicationRepository {
                     category = it.category ?: "Sin categoría",
                     location = "",
                     imageUrl = "",
-                    date = it.createdAt?.toDate() ?: Date(), // CORREGIDO
-                    userId = it.userId ?: "",
+                    date = it.createdAt?.toDate() ?: Date(),
+                    userId = it.ownerId ?: "",
                     type = PublicationType.NEED,
                     needText = ""
                 )

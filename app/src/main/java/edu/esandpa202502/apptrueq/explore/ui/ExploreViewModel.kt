@@ -3,79 +3,54 @@ package edu.esandpa202502.apptrueq.explore.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.model.PublicationType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class ExploreUiState(
-    val allPublications: List<Publication> = emptyList(),
-    val filteredPublications: List<Publication> = emptyList(),
-    val searchQuery: String = "",
-    val selectedTabIndex: Int = 0,
-    val isLoading: Boolean = true,
-    val errorMessage: String? = null
-)
-
-class ExploreViewModel(private val repository: ExploreRepository = ExploreRepository()) :
-    ViewModel() {
+class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
+    private var allPublications: List<Publication> = emptyList()
+
     init {
-        loadPublications()
+        fetchPublications()
     }
 
-    private fun loadPublications() {
+    private fun fetchPublications() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val publications = repository.getPublications()
-                _uiState.update {
-                    it.copy(
-                        allPublications = publications,
-                        isLoading = false
-                    )
-                }
-                applyFilters()
+                allPublications = repository.getPublications()
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    publications = allPublications
+                )
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al cargar publicaciones.") }
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message
+                )
             }
         }
     }
 
-    fun onSearchQueryChanged(newQuery: String) {
-        _uiState.update { it.copy(searchQuery = newQuery) }
-        applyFilters()
+    fun onSearchQueryChanged(query: String) {
+        filterPublications(query = query, category = _uiState.value.publications.firstOrNull()?.category ?: "Todas las categorías")
     }
 
-    fun onTabChanged(newIndex: Int) {
-        _uiState.update { it.copy(selectedTabIndex = newIndex) }
-        applyFilters()
+    fun onCategoryChanged(category: String) {
+        filterPublications(query = "", category = category)
     }
 
-    private fun applyFilters() {
-        _uiState.update { currentState ->
-            val filteredList = currentState.allPublications.filter {
-                val typeMatches = when (currentState.selectedTabIndex) {
-                    1 -> it.type == PublicationType.OFFER
-                    2 -> it.type == PublicationType.NEED
-                    else -> true // "Todo" tab
-                }
-
-                val queryMatches = if (currentState.searchQuery.isBlank()) {
-                    true
-                } else {
-                    it.title.contains(currentState.searchQuery, ignoreCase = true) ||
-                            it.description.contains(currentState.searchQuery, ignoreCase = true)
-                }
-
-                typeMatches && queryMatches
-            }
-            currentState.copy(filteredPublications = filteredList)
+    private fun filterPublications(query: String, category: String) {
+        val filteredList = allPublications.filter { publication ->
+            val matchesCategory = category == "Todas las categorías" || publication.category.equals(category, ignoreCase = true)
+            val matchesQuery = publication.title.contains(query, ignoreCase = true) || publication.description.contains(query, ignoreCase = true)
+            matchesCategory && matchesQuery
         }
+        _uiState.value = _uiState.value.copy(publications = filteredList)
     }
 }
