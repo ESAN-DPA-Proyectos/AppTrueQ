@@ -1,28 +1,85 @@
 package edu.esandpa202502.apptrueq.explore.ui
 
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import edu.esandpa202502.apptrueq.model.Need
+import edu.esandpa202502.apptrueq.model.Offer
 import edu.esandpa202502.apptrueq.model.Publication
 import edu.esandpa202502.apptrueq.model.PublicationType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-/**
- * Repositorio para manejar los datos de las publicaciones.
- * En el futuro, este será el único lugar que hable con Firestore.
- */
 class ExploreRepository {
 
-    // Por ahora, simulamos una llamada a la base de datos con los datos de ejemplo.
-    // La función es 'suspend' para simular una operación de red asíncrona.
-    suspend fun getPublications(): List<Publication> {
-        return withContext(Dispatchers.IO) {
-            // Simula un retraso de red
-            // kotlinx.coroutines.delay(1000)
-            listOf(
-                Publication("1", "Laptop Gamer", "Laptop en buen estado", "Tecnología", "Lima", "https://picsum.photos/id/10/200/300", Date(), "user1", PublicationType.OFFER),
-                Publication("2", "Libro de Kotlin", "Busco libro de Kotlin", "Libros", "Surco", "https://picsum.photos/id/20/200/300", Date(), "user2", PublicationType.NEED),
-                Publication("3", "Ropa de invierno", "Casaca talla M", "Ropa", "Miraflores", "https://picsum.photos/id/30/200/300", Date(), "user3", PublicationType.OFFER)
-            )
+    private val db = FirebaseFirestore.getInstance()
+
+    suspend fun getPublications(): List<Publication> = coroutineScope {
+        try {
+            val offersDeferred = async {
+                db.collection("offers")
+                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .get()
+                    .await()
+            }
+            val needsDeferred = async {
+                db.collection("needs")
+                    .whereEqualTo("status", "ACTIVE")
+                    .get()
+                    .await()
+            }
+
+            val offersSnapshot = offersDeferred.await()
+            val needsSnapshot = needsDeferred.await()
+
+            val offerPublications = offersSnapshot.documents.mapNotNull { document ->
+                val offer = document.toObject(Offer::class.java) ?: return@mapNotNull null
+
+                val createdAt = offer.createdAt ?: return@mapNotNull null
+                val title = offer.title ?: return@mapNotNull null
+                val ownerId = offer.ownerId ?: return@mapNotNull null
+
+                Publication(
+                    id = document.id,
+                    title = title,
+                    description = offer.description ?: "",
+                    category = offer.category ?: "Sin categoría",
+                    location = "",
+                    imageUrl = offer.photos.firstOrNull() ?: "",
+                    date = createdAt.toDate(), // CORREGIDO: Se usa el método .toDate() para la conversión
+                    userId = ownerId,
+                    type = PublicationType.OFFER,
+                    needText = offer.needText ?: ""
+                )
+            }
+
+            val needPublications = needsSnapshot.documents.mapNotNull { document ->
+                val need = document.toObject(Need::class.java) ?: return@mapNotNull null
+                
+                val createdAt = need.createdAt ?: return@mapNotNull null
+                val text = need.text ?: return@mapNotNull null
+                val userId = need.userId ?: return@mapNotNull null
+
+                Publication(
+                    id = document.id,
+                    title = text.take(50) + "...",
+                    description = text,
+                    category = need.category ?: "Sin categoría",
+                    location = "",
+                    imageUrl = "",
+                    date = createdAt.toDate(), // Conversión correcta
+                    userId = userId,
+                    type = PublicationType.NEED,
+                    needText = ""
+                )
+            }
+
+            (offerPublications + needPublications).sortedByDescending { it.date }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 }

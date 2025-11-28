@@ -1,14 +1,15 @@
 package edu.esandpa202502.apptrueq.explore.ui
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import edu.esandpa202502.apptrueq.model.Publication // Asegúrate que esta línea aparezca solo una vez
+import edu.esandpa202502.apptrueq.model.Publication
 import edu.esandpa202502.apptrueq.model.PublicationType
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// Estado de la UI para la pantalla de exploración.
 data class ExploreUiState(
     val allPublications: List<Publication> = emptyList(),
     val filteredPublications: List<Publication> = emptyList(),
@@ -18,66 +19,63 @@ data class ExploreUiState(
     val errorMessage: String? = null
 )
 
-/**
- * ViewModel que contiene toda la lógica de negocio para la pantalla de exploración.
- */
 class ExploreViewModel(private val repository: ExploreRepository = ExploreRepository()) :
     ViewModel() {
 
-    private val _uiState = mutableStateOf(ExploreUiState())
-    val uiState: State<ExploreUiState> = _uiState
+    private val _uiState = MutableStateFlow(ExploreUiState())
+    val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
     init {
-        // Al iniciar el ViewModel, carga las publicaciones iniciales.
         loadPublications()
     }
 
     private fun loadPublications() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             try {
-                _uiState.value = _uiState.value.copy(isLoading = true)
                 val publications = repository.getPublications()
-                _uiState.value = _uiState.value.copy(allPublications = publications, isLoading = false)
-                // Aplica los filtros iniciales
+                _uiState.update {
+                    it.copy(
+                        allPublications = publications,
+                        isLoading = false
+                    )
+                }
                 applyFilters()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Error al cargar publicaciones.")
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al cargar publicaciones.") }
             }
         }
     }
 
-    // Acciones que la UI puede llamar
     fun onSearchQueryChanged(newQuery: String) {
-        _uiState.value = _uiState.value.copy(searchQuery = newQuery)
+        _uiState.update { it.copy(searchQuery = newQuery) }
         applyFilters()
     }
 
     fun onTabChanged(newIndex: Int) {
-        _uiState.value = _uiState.value.copy(selectedTabIndex = newIndex)
+        _uiState.update { it.copy(selectedTabIndex = newIndex) }
         applyFilters()
     }
 
-    // Lógica de filtrado centralizada
     private fun applyFilters() {
-        val currentState = _uiState.value
-        val filteredList = currentState.allPublications.filter {
-            // Filtro por tipo (Oferta/Necesidad)
-            val typeMatches = if (currentState.selectedTabIndex == 0) {
-                it.type == PublicationType.OFFER
-            } else {
-                it.type == PublicationType.NEED
-            }
+        _uiState.update { currentState ->
+            val filteredList = currentState.allPublications.filter {
+                val typeMatches = when (currentState.selectedTabIndex) {
+                    1 -> it.type == PublicationType.OFFER
+                    2 -> it.type == PublicationType.NEED
+                    else -> true // "Todo" tab
+                }
 
-            // Filtro por texto de búsqueda
-            val queryMatches = if (currentState.searchQuery.isBlank()) {
-                true
-            } else {
-                it.title.contains(currentState.searchQuery, ignoreCase = true) ||
-                        it.description.contains(currentState.searchQuery, ignoreCase = true)
-            }
+                val queryMatches = if (currentState.searchQuery.isBlank()) {
+                    true
+                } else {
+                    it.title.contains(currentState.searchQuery, ignoreCase = true) ||
+                            it.description.contains(currentState.searchQuery, ignoreCase = true)
+                }
 
-            typeMatches && queryMatches
+                typeMatches && queryMatches
+            }
+            currentState.copy(filteredPublications = filteredList)
         }
-        _uiState.value = _uiState.value.copy(filteredPublications = filteredList)
     }
 }
