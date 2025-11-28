@@ -17,15 +17,17 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.Offer
 import edu.esandpa202502.apptrueq.exchange.viewmodel.ExchangeViewModel
+import edu.esandpa202502.apptrueq.exchange.viewmodel.OffersUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProposalsReceivedScreen(
+fun OffersReceivedScreen(
     navController: NavController,
     exchangeViewModel: ExchangeViewModel = viewModel()
 ) {
     val currentUser = FirebaseAuth.getInstance().currentUser
-    val uiState by exchangeViewModel.uiState.collectAsState()
+    // CORREGIDO: Se observa la propiedad `offersUiState` que es la correcta para esta pantalla.
+    val uiState by exchangeViewModel.offersUiState.collectAsState()
 
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let {
@@ -63,13 +65,13 @@ fun ProposalsReceivedScreen(
                 }
                 uiState.offers.isEmpty() -> {
                     Text(
-                        text = "No tienes propuestas pendientes.",
+                        text = "No tienes ofertas pendientes.",
                         modifier = Modifier.align(Alignment.Center).padding(16.dp),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
                 else -> {
-                    ProposalsList(
+                    OffersList(
                         offers = uiState.offers,
                         onAccept = { exchangeViewModel.onAcceptOffer(it) },
                         onReject = { exchangeViewModel.onRejectOffer(it) }
@@ -81,7 +83,7 @@ fun ProposalsReceivedScreen(
 }
 
 @Composable
-private fun ProposalsList(
+private fun OffersList(
     offers: List<Offer>,
     onAccept: (Offer) -> Unit,
     onReject: (Offer) -> Unit
@@ -91,13 +93,13 @@ private fun ProposalsList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(offers, key = { it.id }) { offer ->
-            ProposalCard(offer = offer, onAccept = { onAccept(offer) }, onReject = { onReject(offer) })
+            OfferCard(offer = offer, onAccept = { onAccept(offer) }, onReject = { onReject(offer) })
         }
     }
 }
 
 @Composable
-private fun ProposalCard(
+private fun OfferCard(
     offer: Offer,
     onAccept: () -> Unit,
     onReject: () -> Unit
@@ -110,7 +112,7 @@ private fun ProposalCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Propuesta de: ${offer.ownerName}",
+                text = "Oferta de: ${offer.ownerName}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
