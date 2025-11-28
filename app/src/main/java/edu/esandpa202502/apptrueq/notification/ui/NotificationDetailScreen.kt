@@ -102,6 +102,9 @@ fun NotificationDetailScreen(
                         }
                     }
                 }
+            } else {
+                // Muestra un indicador si la oferta no se encuentra en la lista (o está cargando)
+                CircularProgressIndicator()
             }
         }
     }
