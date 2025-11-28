@@ -36,7 +36,7 @@ fun ProposalsReceivedScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Propuestas Recibidas") },
+                title = { Text("Ofertas Recibidas") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
