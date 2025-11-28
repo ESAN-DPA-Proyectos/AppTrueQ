@@ -1,10 +1,11 @@
 package edu.esandpa202502.apptrueq.remote.firebase
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
-
 
 object FirebaseAuthManager {
 
@@ -35,12 +36,15 @@ object FirebaseAuthManager {
         }
     //login user
     suspend fun loginUser(email: String, password: String): Result<Unit> {
-        return try{
+        return try {
             auth.signInWithEmailAndPassword(email, password).await()
             Result.success(Unit)
-
-        } catch (e: Exception){
-            Result.failure(e)
+        } catch (e: Exception) {
+            if (e is FirebaseAuthInvalidUserException || e is FirebaseAuthInvalidCredentialsException) {
+                Result.failure(Exception("El correo o la contraseña son incorrectos."))
+            } else {
+                Result.failure(e)
+            }
         }
     }
 
