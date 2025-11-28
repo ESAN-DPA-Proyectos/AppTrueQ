@@ -54,10 +54,10 @@ fun NavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("id") { type = NavType.IntType })
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("id") ?: -1
-            PublicationDetailScreen(id = id, onBack = { navController.popBackStack() })
+            val publicationId = backStackEntry.arguments?.getString("id") ?: ""
+            PublicationDetailScreen(navController = navController, publicationId = publicationId)
         }
 
         composable(Routes.TradeHistory.route) {

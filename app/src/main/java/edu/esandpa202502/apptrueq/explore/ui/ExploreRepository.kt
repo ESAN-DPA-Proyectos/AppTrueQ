@@ -47,7 +47,7 @@ class ExploreRepository {
                     category = offer.category ?: "Sin categoría",
                     location = "",
                     imageUrl = offer.photos.firstOrNull() ?: "",
-                    date = createdAt.toDate(), // CORREGIDO: Se usa el método .toDate() para la conversión
+                    date = createdAt.toDate(),
                     userId = ownerId,
                     type = PublicationType.OFFER,
                     needText = offer.needText ?: ""
@@ -59,7 +59,7 @@ class ExploreRepository {
                 
                 val createdAt = need.createdAt ?: return@mapNotNull null
                 val text = need.text ?: return@mapNotNull null
-                val userId = need.userId ?: return@mapNotNull null
+                val ownerId = need.ownerId ?: return@mapNotNull null
 
                 Publication(
                     id = document.id,
@@ -68,8 +68,8 @@ class ExploreRepository {
                     category = need.category ?: "Sin categoría",
                     location = "",
                     imageUrl = "",
-                    date = createdAt.toDate(), // Conversión correcta
-                    userId = userId,
+                    date = createdAt.toDate(),
+                    userId = ownerId,
                     type = PublicationType.NEED,
                     needText = ""
                 )
