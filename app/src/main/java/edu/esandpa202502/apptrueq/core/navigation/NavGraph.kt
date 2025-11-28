@@ -30,7 +30,7 @@ fun NavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.Login.route
+        startDestination = Routes.Dashboard.route
     ) {
         composable(Routes.Dashboard.route) {
             DashboardScreen(navController = navController)
