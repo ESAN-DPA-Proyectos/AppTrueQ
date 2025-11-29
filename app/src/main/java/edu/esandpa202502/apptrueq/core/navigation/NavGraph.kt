@@ -14,12 +14,12 @@ import edu.esandpa202502.apptrueq.auth.ui.Logout
 import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.exchange.ui.OffersReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
+import edu.esandpa202502.apptrueq.proposal.ui.ProposalsReceivedScreen // Importamos la nueva pantalla
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
@@ -64,8 +64,8 @@ fun NavGraph(navController: NavHostController) {
             TradeHistoryScreen(navController = navController)
         }
 
-        composable(Routes.OffersReceived.route) {
-            OffersReceivedScreen(navController = navController)
+        composable(Routes.ProposalsReceived.route) { // Ruta actualizada
+            ProposalsReceivedScreen() // Pantalla actualizada
         }
 
         composable(
@@ -92,7 +92,7 @@ fun NavGraph(navController: NavHostController) {
             NotificationDetailScreen(
                 navController = navController,
                 notificationId = notificationId,
-                referenceId = referenceId // ERROR DE TIPEO CORREGIDO
+                referenceId = referenceId
             )
         }
 
