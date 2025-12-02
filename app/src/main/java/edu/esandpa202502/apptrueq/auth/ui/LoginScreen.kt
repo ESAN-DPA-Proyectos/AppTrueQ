@@ -119,6 +119,8 @@ fun LoginScreen(
                     Text("Iniciar Sesión")
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 TextButton(onClick = { navController.navigate(Routes.ForgotPassword.route) }) {
                     Text("¿Olvidaste tu contraseña?")
                 }
