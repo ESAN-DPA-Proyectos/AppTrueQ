@@ -8,6 +8,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.NavType
 
 // --- Módulos principales ---
+import edu.esandpa202502.apptrueq.auth.ui.ForgotPasswordScreen
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
 import edu.esandpa202502.apptrueq.auth.ui.Logout
@@ -42,6 +43,10 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Routes.Register.route) {
             RegisterScreen(navController = navController)
+        }
+
+        composable(Routes.ForgotPassword.route) {
+            ForgotPasswordScreen(navController = navController)
         }
 
         composable(Routes.Logout.route) {
