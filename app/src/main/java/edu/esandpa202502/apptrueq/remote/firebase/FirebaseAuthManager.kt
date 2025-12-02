@@ -50,6 +50,7 @@ object FirebaseAuthManager {
 
     fun logout() {
         auth.signOut()
+        firestore.clearPersistence()
     }
 
 }
