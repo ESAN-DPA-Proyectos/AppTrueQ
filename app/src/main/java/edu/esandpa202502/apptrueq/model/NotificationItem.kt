@@ -2,7 +2,6 @@ package edu.esandpa202502.apptrueq.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
-import com.google.firebase.firestore.Exclude // <-- 1. IMPORT AÑADIDO
 import com.google.firebase.firestore.ServerTimestamp
 
 /**
@@ -10,9 +9,9 @@ import com.google.firebase.firestore.ServerTimestamp
  */
 data class NotificationItem(
     
-    @get:Exclude // <-- 2. ANOTACIÓN AÑADIDA
+    // QA: Se corrige el ID para que no sea nulo, solucionando el error en LazyColumn.
     @DocumentId
-    val id: String? = null,
+    val id: String = "",
 
     val userId: String = "", // A quién se le muestra la notificación
     val title: String = "",
