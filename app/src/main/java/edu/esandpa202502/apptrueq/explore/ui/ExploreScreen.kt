@@ -15,19 +15,28 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.Publication
+// QA: Se importa la implementación concreta desde su ubicación centralizada.
+import edu.esandpa202502.apptrueq.repository.explore.ExploreRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
     navController: NavController
 ) {
+    // QA: CORRECCIÓN DEFINITIVA - Se instancia la clase `ExploreRepositoryImpl()` en lugar de la interfaz `ExploreRepository()`.
     val viewModel: ExploreViewModel = viewModel(
         factory = ExploreViewModelFactory(ExploreRepository())
     )
+    
     val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Todas las categorías") }
+    
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val locationQuery by viewModel.locationQuery.collectAsState()
+    val typeFilter by viewModel.typeFilter.collectAsState()
+
     val categories = listOf("Todas las categorías", "Hogar", "Libros", "Servicios", "Tecnología")
+    val typeOptions = listOf("Todos", "Ofertas", "Necesidades")
 
     Column(
         modifier = Modifier
@@ -36,13 +45,22 @@ fun ExploreScreen(
     ) {
         Text("Explorar Publicaciones", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(vertical = 16.dp))
 
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            typeOptions.forEach { type ->
+                FilterChip(
+                    selected = typeFilter == type,
+                    onClick = { viewModel.onTypeFilterChanged(type) },
+                    label = { Text(type) }
+                )
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                viewModel.onSearchQueryChanged(it)
-            },
-            label = { Text("Buscar en todas las publicaciones...") },
+            onValueChange = { viewModel.onSearchQueryChanged(it) },
+            label = { Text("Buscar por título o descripción...") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -60,13 +78,21 @@ fun ExploreScreen(
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 categories.forEach { cat ->
                     DropdownMenuItem(text = { Text(cat) }, onClick = {
-                        selectedCategory = cat
                         viewModel.onCategoryChanged(cat)
                         expanded = false
                     })
                 }
             }
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = locationQuery,
+            onValueChange = { viewModel.onLocationChanged(it) },
+            label = { Text("Filtrar por ubicación...") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(Modifier.height(16.dp))
 
@@ -83,7 +109,7 @@ fun ExploreScreen(
                 }
                 uiState.publications.isEmpty() -> {
                     Text(
-                        text = "No se encontraron publicaciones.",
+                        text = "No se encontraron publicaciones con esos criterios.",
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -126,8 +152,8 @@ fun PublicationCard(publication: Publication, onClick: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Text(publication.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                  Spacer(Modifier.height(8.dp))
-                Button(onClick = { /* TODO: Navegar a la pantalla para crear la oferta (Need) */ }) {
-                    Text("Realizar Oferta")
+                Button(onClick = onClick) {
+                    Text("Ver mas")
                 }
             }
         }

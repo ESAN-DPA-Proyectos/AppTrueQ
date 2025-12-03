@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +22,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.R
+import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.proposal.ui.ProposalDialog
 import edu.esandpa202502.apptrueq.viewmodel.PublicationDetailViewModel
 import edu.esandpa202502.apptrueq.viewmodel.PublicationDetailViewModelFactory
@@ -52,6 +54,19 @@ fun PublicationDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                    }
+                },
+                // HU-10: Se añade la sección de acciones en la TopAppBar.
+                actions = {
+                    // El botón de reportar solo aparece si el usuario actual NO es el dueño de la publicación.
+                    val publicationOwnerId = uiState.publication?.userId
+                    if (publicationOwnerId != null && publicationOwnerId != currentUser?.uid) {
+                        IconButton(onClick = {
+                            // Navega a la pantalla de reporte, pasando el ID del usuario a reportar.
+                            navController.navigate(Routes.ReportUser.createRoute(publicationOwnerId))
+                        }) {
+                            Icon(Icons.Default.Report, contentDescription = "Reportar Usuario")
+                        }
                     }
                 }
             )

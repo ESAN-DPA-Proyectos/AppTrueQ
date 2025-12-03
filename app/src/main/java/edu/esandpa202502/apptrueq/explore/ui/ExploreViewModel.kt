@@ -3,9 +3,13 @@ package edu.esandpa202502.apptrueq.explore.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.esandpa202502.apptrueq.model.Publication
+import edu.esandpa202502.apptrueq.model.PublicationType
+import edu.esandpa202502.apptrueq.repository.explore.ExploreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() {
@@ -15,8 +19,40 @@ class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() 
 
     private var allPublications: List<Publication> = emptyList()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow("Todas las categorías")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
+
+    private val _locationQuery = MutableStateFlow("")
+    val locationQuery: StateFlow<String> = _locationQuery.asStateFlow()
+
+    private val _typeFilter = MutableStateFlow("Todos")
+    val typeFilter: StateFlow<String> = _typeFilter.asStateFlow()
+
+
     init {
         fetchPublications()
+
+        viewModelScope.launch {
+            combine(_searchQuery, _selectedCategory, _locationQuery, _typeFilter) { query, category, location, type ->
+                FilterCriteria(query, category, location, type)
+            }.collect { criteria ->
+                val filteredList = allPublications.filter { publication ->
+                    val matchesCategory = criteria.category == "Todas las categorías" || publication.category.equals(criteria.category, ignoreCase = true)
+                    val matchesQuery = publication.title.contains(criteria.query, ignoreCase = true) || publication.description.contains(criteria.query, ignoreCase = true)
+                    val matchesLocation = criteria.location.isBlank() || (publication.location ?: "").contains(criteria.location, ignoreCase = true)
+                    val matchesType = when (criteria.type) {
+                        "Ofertas" -> publication.type == PublicationType.OFFER
+                        "Necesidades" -> publication.type == PublicationType.NEED
+                        else -> true
+                    }
+                    matchesCategory && matchesQuery && matchesLocation && matchesType
+                }
+                _uiState.update { it.copy(publications = filteredList) }
+            }
+        }
     }
 
     private fun fetchPublications() {
@@ -24,33 +60,39 @@ class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() 
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 allPublications = repository.getPublications()
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    publications = allPublications
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        publications = allPublications,
+                        error = null
+                    )
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al cargar publicaciones: ${e.message}"
+                    )
+                }
             }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
-        filterPublications(query = query, category = _uiState.value.publications.firstOrNull()?.category ?: "Todas las categorías")
+        _searchQuery.value = query
     }
 
     fun onCategoryChanged(category: String) {
-        filterPublications(query = "", category = category)
+        _selectedCategory.value = category
     }
 
-    private fun filterPublications(query: String, category: String) {
-        val filteredList = allPublications.filter { publication ->
-            val matchesCategory = category == "Todas las categorías" || publication.category.equals(category, ignoreCase = true)
-            val matchesQuery = publication.title.contains(query, ignoreCase = true) || publication.description.contains(query, ignoreCase = true)
-            matchesCategory && matchesQuery
-        }
-        _uiState.value = _uiState.value.copy(publications = filteredList)
+    fun onLocationChanged(location: String) {
+        _locationQuery.value = location
     }
+
+    fun onTypeFilterChanged(type: String) {
+        _typeFilter.value = type
+    }
+    
+    private data class FilterCriteria(val query: String, val category: String, val location: String, val type: String)
 }

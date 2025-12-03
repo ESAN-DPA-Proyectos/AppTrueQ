@@ -8,27 +8,31 @@ import com.google.firebase.firestore.FirebaseFirestore
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.notification.repository.NotificationRepository
+import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
+import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
 import edu.esandpa202502.apptrueq.repository.publication.PublicationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+// HU-06: Se añade un campo para los errores de validación en el diálogo.
 data class PublicationDetailUiState(
     val isLoading: Boolean = true,
     val publication: Publication? = null,
-    val userPublications: List<Publication> = emptyList(), // Nueva lista para las publicaciones del usuario
+    val userPublications: List<Publication> = emptyList(),
     val error: String? = null,
+    val proposalError: String? = null, // Para mostrar errores específicos del diálogo
     val proposalSent: Boolean = false
 )
 
 class PublicationDetailViewModel(private val publicationId: String) : ViewModel() {
 
     private val publicationRepository = PublicationRepository()
+    private val proposalRepository = ProposalRepository() // Se añade el repositorio de propuestas
     private val notificationRepository = NotificationRepository()
-    private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
     private val _uiState = MutableStateFlow(PublicationDetailUiState())
@@ -41,12 +45,12 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
 
     private fun loadPublication() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val publication = publicationRepository.getPublicationById(publicationId)
-                _uiState.value = _uiState.value.copy(isLoading = false, publication = publication)
+                _uiState.update { it.copy(isLoading = false, publication = publication) }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "Error al cargar la publicación.")
+                _uiState.update { it.copy(isLoading = false, error = "Error al cargar la publicación.") }
             }
         }
     }
@@ -56,10 +60,9 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
         viewModelScope.launch {
             try {
                 val publications = publicationRepository.getPublicationsByUserId(currentUser.uid)
-                _uiState.value = _uiState.value.copy(userPublications = publications)
+                _uiState.update { it.copy(userPublications = publications) }
             } catch (e: Exception) {
-                // Manejar error silenciosamente por ahora para no bloquear la UI principal
-                _uiState.value = _uiState.value.copy(error = _uiState.value.error ?: "Error al cargar tus publicaciones.")
+                _uiState.update { it.copy(error = _uiState.value.error ?: "Error al cargar tus publicaciones.") }
             }
         }
     }
@@ -68,8 +71,23 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
         val publication = _uiState.value.publication ?: return
         val currentUser = auth.currentUser ?: return
 
+        // HU-06: Validación de la longitud del texto de la propuesta.
+        if (proposalText.length !in 10..250) {
+            _uiState.update { it.copy(proposalError = "El mensaje debe tener entre 10 y 250 caracteres.") }
+            return
+        }
+
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, proposalError = null) }
             try {
+                // HU-06: Validación anti-spam. Comprueba si ya existe una propuesta.
+                val hasExisting = proposalRepository.hasExistingProposal(currentUser.uid, publication.id)
+                if (hasExisting) {
+                    _uiState.update { it.copy(isLoading = false, proposalError = "Ya has enviado una propuesta para esta publicación.") }
+                    return@launch
+                }
+
+                // El estado por defecto del modelo `Proposal` ya es "PENDIENTE", cumpliendo el requisito.
                 val proposal = Proposal(
                     publicationId = publication.id,
                     publicationOwnerId = publication.userId,
@@ -77,9 +95,10 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
                     proposerId = currentUser.uid,
                     proposerName = currentUser.displayName ?: "Usuario Anónimo",
                     proposalText = proposalText,
-                    offeredPublicationId = offeredPublicationId // ID de la publicación que se ofrece
+                    offeredPublicationId = offeredPublicationId
                 )
 
+                val db = FirebaseFirestore.getInstance()
                 val proposalRef = db.collection("proposals").add(proposal).await()
 
                 val notification = NotificationItem(
@@ -91,12 +110,17 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
                 )
                 notificationRepository.addNotification(notification)
 
-                _uiState.value = _uiState.value.copy(proposalSent = true)
+                _uiState.update { it.copy(isLoading = false, proposalSent = true) }
 
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = "Error al enviar la propuesta.")
+                _uiState.update { it.copy(isLoading = false, error = "Error al enviar la propuesta: ${e.message}") }
             }
         }
+    }
+
+    // Función para limpiar el error del diálogo cuando se cierra.
+    fun clearProposalError() {
+        _uiState.update { it.copy(proposalError = null) }
     }
 }
 

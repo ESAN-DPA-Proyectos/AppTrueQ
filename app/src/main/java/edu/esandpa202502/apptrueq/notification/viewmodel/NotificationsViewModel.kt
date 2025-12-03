@@ -11,47 +11,48 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
-data class NotificationUiState(
+data class NotificationsUiState(
     val isLoading: Boolean = true,
     val notifications: List<NotificationItem> = emptyList(),
     val error: String? = null
 )
 
-class NotificationViewModel : ViewModel() {
+class NotificationsViewModel : ViewModel() {
 
     private val notificationRepository = NotificationRepository()
     private val auth = FirebaseAuth.getInstance()
 
-    private val _uiState = MutableStateFlow(NotificationUiState())
-    val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(NotificationsUiState())
+    val uiState: StateFlow<NotificationsUiState> = _uiState.asStateFlow()
 
     init {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            listenForNotifications(userId)
-        }
+        loadNotifications()
     }
 
-    fun listenForNotifications(userId: String) {
+    private fun loadNotifications() {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _uiState.value = NotificationsUiState(isLoading = false, error = "Usuario no autenticado.")
+            return
+        }
+
         viewModelScope.launch {
             notificationRepository.getNotifications(userId)
                 .catch { e ->
                     _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
                 }
                 .collect { notifications ->
-                    _uiState.value = NotificationUiState(isLoading = false, notifications = notifications)
+                    _uiState.value = NotificationsUiState(isLoading = false, notifications = notifications)
                 }
         }
     }
 
     fun markAsRead(notificationId: String) {
-        if (notificationId.isBlank()) return
         viewModelScope.launch {
             try {
                 notificationRepository.markAsRead(notificationId)
             } catch (e: Exception) {
-                // El error se puede registrar o mostrar de forma más sutil
-                println("Error al marcar como leída: ${e.message}")
+                _uiState.value = _uiState.value.copy(error = "Error al marcar la notificación como leída: ${e.message}")
             }
         }
     }

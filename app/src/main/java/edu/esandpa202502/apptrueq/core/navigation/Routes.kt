@@ -9,7 +9,7 @@ sealed class Routes(val route: String) {
     object Dashboard : Routes("dashboard")
     object Explore : Routes("explore")
     object TradeHistory : Routes("trade_history")
-    object OffersReceived : Routes("offers_received")
+    object ProposalsReceived : Routes("proposals_received") // Renombrado de OffersReceived
     object Notifications : Routes("notifications")
     object ReportUser : Routes("report_user")
     object Offer : Routes("offer")
