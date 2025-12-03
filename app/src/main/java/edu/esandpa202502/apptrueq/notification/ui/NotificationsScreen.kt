@@ -1,17 +1,7 @@
 package edu.esandpa202502.apptrueq.notification.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -28,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.notification.viewmodel.NotificationViewModel
@@ -39,15 +28,8 @@ fun NotificationsScreen(
     navController: NavController,
     notificationViewModel: NotificationViewModel = viewModel()
 ) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
     val uiState by notificationViewModel.uiState.collectAsState()
     var showOnlyUnread by remember { mutableStateOf(false) }
-
-    LaunchedEffect(currentUser) {
-        currentUser?.uid?.let {
-            notificationViewModel.listenForNotifications(it)
-        }
-    }
 
     val filteredNotifications = remember(uiState.notifications, showOnlyUnread) {
         if (showOnlyUnread) {
@@ -107,12 +89,12 @@ fun NotificationsScreen(
                                     notification = notification,
                                     onClick = {
                                         notificationViewModel.markAsRead(notification.id)
-                                        navController.navigate(
-                                            Routes.NotificationDetail.createRoute(
-                                                notificationId = notification.id,
-                                                referenceId = notification.referenceId
-                                            )
-                                        )
+                                        // Deep linking
+                                        val route = when (notification.type) {
+                                            "new_proposal", "proposal_accepted", "proposal_rejected" -> Routes.ProposalsReceived.route
+                                            else -> null // O una ruta por defecto
+                                        }
+                                        route?.let { navController.navigate(it) }
                                     }
                                 )
                             }

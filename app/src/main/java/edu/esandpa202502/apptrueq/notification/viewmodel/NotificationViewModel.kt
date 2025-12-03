@@ -2,16 +2,16 @@ package edu.esandpa202502.apptrueq.notification.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
-data class NotificationsUiState(
+data class NotificationUiState(
     val isLoading: Boolean = true,
     val notifications: List<NotificationItem> = emptyList(),
     val error: String? = null
@@ -19,27 +19,44 @@ data class NotificationsUiState(
 
 class NotificationViewModel : ViewModel() {
 
-    private val repository = NotificationRepository()
+    private val notificationRepository = NotificationRepository()
+    private val auth = FirebaseAuth.getInstance()
 
-    private val _uiState = MutableStateFlow(NotificationsUiState())
-    val uiState: StateFlow<NotificationsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(NotificationUiState())
+    val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
+
+    init {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            listenForNotifications(userId)
+        }
+    }
 
     fun listenForNotifications(userId: String) {
         viewModelScope.launch {
-            repository.getNotifications(userId)
-                .onStart { _uiState.value = NotificationsUiState(isLoading = true) }
-                .catch { e -> _uiState.value = NotificationsUiState(isLoading = false, error = e.message) }
+            notificationRepository.getNotifications(userId)
+                .catch { e ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                }
                 .collect { notifications ->
-                    // La ordenación ahora se hace en el cliente
-                    val sortedNotifications = notifications.sortedByDescending { it.createdAt }
-                    _uiState.value = NotificationsUiState(isLoading = false, notifications = sortedNotifications)
+                    _uiState.value = NotificationUiState(isLoading = false, notifications = notifications)
                 }
         }
     }
 
     fun markAsRead(notificationId: String) {
+        if (notificationId.isBlank()) return
         viewModelScope.launch {
-            repository.markAsRead(notificationId)
+            try {
+                notificationRepository.markAsRead(notificationId)
+            } catch (e: Exception) {
+                // El error se puede registrar o mostrar de forma más sutil
+                println("Error al marcar como leída: ${e.message}")
+            }
         }
+    }
+    
+    fun dismissError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 }
