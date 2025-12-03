@@ -19,8 +19,7 @@ import java.util.*
 fun OfferCard(offer: Offer) {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
     sdf.timeZone = TimeZone.getTimeZone("America/Lima")
-    // CORRECCIÓN: Se añade .toDate() para convertir el Timestamp de Firebase a un objeto Date.
-    val date = offer.createdAt?.toDate()?.let { sdf.format(it) } ?: ""
+    val date = offer.createdAt?.let { sdf.format(it) } ?: ""
 
     Card(
         modifier = Modifier.fillMaxWidth(),

@@ -4,13 +4,14 @@ sealed class Routes(val route: String) {
     // Rutas sin argumentos
     object Login : Routes("login")
     object Register : Routes("register")
+    object ForgotPassword : Routes("forgot_password")
     object Logout : Routes("logout")
     object Dashboard : Routes("dashboard")
     object Explore : Routes("explore")
     object TradeHistory : Routes("trade_history")
-    object ProposalsReceived : Routes("proposals_received") // Renombrado de OffersReceived
+    // CORRECCIÓN: Se renombra a 'ProposalsReceived' para consistencia en la app.
+    object ProposalsReceived : Routes("proposals_received")
     object Notifications : Routes("notifications")
-    object ReportUser : Routes("report_user")
     object Offer : Routes("offer")
     object Need : Routes("need")
 
@@ -25,5 +26,9 @@ sealed class Routes(val route: String) {
 
     object NotificationDetail : Routes("notification_detail/{notificationId}/{referenceId}") {
         fun createRoute(notificationId: String, referenceId: String) = "notification_detail/$notificationId/$referenceId"
+    }
+
+    object ReportUser : Routes("report_user/{userId}") {
+        fun createRoute(userId: String) = "report_user/$userId"
     }
 }
