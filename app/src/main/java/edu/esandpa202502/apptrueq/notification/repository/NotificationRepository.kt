@@ -12,7 +12,6 @@ class NotificationRepository {
     private val db = FirebaseFirestore.getInstance()
 
     fun getNotifications(userId: String): Flow<List<NotificationItem>> = callbackFlow {
-        // CONSULTA SIMPLE: Solo se filtra por un campo.
         val listener = db.collection("notifications")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
@@ -24,6 +23,15 @@ class NotificationRepository {
                 trySend(notifications).isSuccess
             }
         awaitClose { listener.remove() }
+    }
+
+    suspend fun addNotification(notification: NotificationItem) {
+        try {
+            db.collection("notifications").add(notification).await()
+        } catch (e: Exception) {
+            // Manejar o registrar la excepción
+            e.printStackTrace()
+        }
     }
 
     suspend fun markAsRead(notificationId: String) {

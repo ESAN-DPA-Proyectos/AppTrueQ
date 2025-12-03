@@ -57,7 +57,7 @@ class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() 
 
     private fun fetchPublications() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 allPublications = repository.getPublications()
                 _uiState.update {

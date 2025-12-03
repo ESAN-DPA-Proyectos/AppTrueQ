@@ -4,6 +4,7 @@ sealed class Routes(val route: String) {
     // Rutas sin argumentos
     object Login : Routes("login")
     object Register : Routes("register")
+    object ForgotPassword : Routes("forgot_password")
     object Logout : Routes("logout")
     object Dashboard : Routes("dashboard")
     object Explore : Routes("explore")
