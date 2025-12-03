@@ -2,19 +2,20 @@ package edu.esandpa202502.apptrueq.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
 
 // --- Módulos principales ---
+import edu.esandpa202502.apptrueq.auth.ui.ForgotPasswordScreen
 import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
 import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
 import edu.esandpa202502.apptrueq.auth.ui.Logout
 import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.exchange.ui.OffersReceivedScreen
+import edu.esandpa202502.apptrueq.exchange.ui.ProposalsReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
@@ -44,6 +45,10 @@ fun NavGraph(navController: NavHostController) {
             RegisterScreen(navController = navController)
         }
 
+        composable(Routes.ForgotPassword.route) {
+            ForgotPasswordScreen(navController = navController)
+        }
+
         composable(Routes.Logout.route) {
             Logout(navController = navController)
         }
@@ -54,18 +59,18 @@ fun NavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("id") { type = NavType.IntType })
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("id") ?: -1
-            PublicationDetailScreen(id = id, onBack = { navController.popBackStack() })
+            val publicationId = backStackEntry.arguments?.getString("id") ?: ""
+            PublicationDetailScreen(navController = navController, publicationId = publicationId)
         }
 
         composable(Routes.TradeHistory.route) {
             TradeHistoryScreen(navController = navController)
         }
 
-        composable(Routes.OffersReceived.route) {
-            OffersReceivedScreen(navController = navController)
+        composable(Routes.ProposalsReceived.route) {
+            ProposalsReceivedScreen(navController = navController)
         }
 
         composable(
@@ -87,17 +92,22 @@ fun NavGraph(navController: NavHostController) {
                 navArgument("referenceId") { type = NavType.StringType; nullable = true }
             )
         ) { backStackEntry ->
-            val notificationId = backStackEntry.arguments?.getString("notificationId")
-            val referenceId = backStackEntry.arguments?.getString("referenceId")
+            val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
+            val referenceId = backStackEntry.arguments?.getString("referenceId") ?: ""
             NotificationDetailScreen(
                 navController = navController,
                 notificationId = notificationId,
-                referenceId = referenceId // ERROR DE TIPEO CORREGIDO
+                referenceId = referenceId
             )
         }
 
-        composable(Routes.ReportUser.route) {
-            ReportUserScreen(navController = navController)
+        // HU-10: CORRECCIÓN - Se añade la definición y extracción del argumento 'userId'.
+        composable(
+            route = Routes.ReportUser.route,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reportedUserId = backStackEntry.arguments?.getString("userId") ?: ""
+            ReportUserScreen(navController = navController, reportedUserId = reportedUserId)
         }
 
         composable(Routes.Offer.route) {

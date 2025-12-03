@@ -41,8 +41,8 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
         NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
         NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, route = Routes.Notifications.route),
         NavigationItem("Reportar Usuario", Icons.Filled.Report, Icons.Outlined.Report, route = Routes.ReportUser.route),
-        // CORREGIDO: Título y ruta alineados con la arquitectura de "Offers"
-        NavigationItem("Ofertas Recibidas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.OffersReceived.route),
+        // CORRECCIÓN: Se actualiza el título y la ruta para usar "ProposalsReceived" en lugar de "OffersReceived".
+        NavigationItem("Propuestas Recibidas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route),
         NavigationItem("Cerrar Sesión", Icons.Filled.Logout, Icons.Outlined.Logout, route = Routes.Logout.route)
         
     )

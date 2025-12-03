@@ -4,78 +4,95 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.esandpa202502.apptrueq.model.Publication
 import edu.esandpa202502.apptrueq.model.PublicationType
+import edu.esandpa202502.apptrueq.repository.explore.ExploreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class ExploreUiState(
-    val allPublications: List<Publication> = emptyList(),
-    val filteredPublications: List<Publication> = emptyList(),
-    val searchQuery: String = "",
-    val selectedTabIndex: Int = 0,
-    val isLoading: Boolean = true,
-    val errorMessage: String? = null
-)
-
-class ExploreViewModel(private val repository: ExploreRepository = ExploreRepository()) :
-    ViewModel() {
+class ExploreViewModel(private val repository: ExploreRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
+    private var allPublications: List<Publication> = emptyList()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _selectedCategory = MutableStateFlow("Todas las categorías")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
+
+    private val _locationQuery = MutableStateFlow("")
+    val locationQuery: StateFlow<String> = _locationQuery.asStateFlow()
+
+    private val _typeFilter = MutableStateFlow("Todos")
+    val typeFilter: StateFlow<String> = _typeFilter.asStateFlow()
+
+
     init {
-        loadPublications()
+        fetchPublications()
+
+        viewModelScope.launch {
+            combine(_searchQuery, _selectedCategory, _locationQuery, _typeFilter) { query, category, location, type ->
+                FilterCriteria(query, category, location, type)
+            }.collect { criteria ->
+                val filteredList = allPublications.filter { publication ->
+                    val matchesCategory = criteria.category == "Todas las categorías" || publication.category.equals(criteria.category, ignoreCase = true)
+                    val matchesQuery = publication.title.contains(criteria.query, ignoreCase = true) || publication.description.contains(criteria.query, ignoreCase = true)
+                    val matchesLocation = criteria.location.isBlank() || (publication.location ?: "").contains(criteria.location, ignoreCase = true)
+                    val matchesType = when (criteria.type) {
+                        "Ofertas" -> publication.type == PublicationType.OFFER
+                        "Necesidades" -> publication.type == PublicationType.NEED
+                        else -> true
+                    }
+                    matchesCategory && matchesQuery && matchesLocation && matchesType
+                }
+                _uiState.update { it.copy(publications = filteredList) }
+            }
+        }
     }
 
-    private fun loadPublications() {
+    private fun fetchPublications() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val publications = repository.getPublications()
+                allPublications = repository.getPublications()
                 _uiState.update {
                     it.copy(
-                        allPublications = publications,
-                        isLoading = false
+                        isLoading = false,
+                        publications = allPublications,
+                        error = null
                     )
                 }
-                applyFilters()
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al cargar publicaciones.") }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error al cargar publicaciones: ${e.message}"
+                    )
+                }
             }
         }
     }
 
-    fun onSearchQueryChanged(newQuery: String) {
-        _uiState.update { it.copy(searchQuery = newQuery) }
-        applyFilters()
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
     }
 
-    fun onTabChanged(newIndex: Int) {
-        _uiState.update { it.copy(selectedTabIndex = newIndex) }
-        applyFilters()
+    fun onCategoryChanged(category: String) {
+        _selectedCategory.value = category
     }
 
-    private fun applyFilters() {
-        _uiState.update { currentState ->
-            val filteredList = currentState.allPublications.filter {
-                val typeMatches = when (currentState.selectedTabIndex) {
-                    1 -> it.type == PublicationType.OFFER
-                    2 -> it.type == PublicationType.NEED
-                    else -> true // "Todo" tab
-                }
-
-                val queryMatches = if (currentState.searchQuery.isBlank()) {
-                    true
-                } else {
-                    it.title.contains(currentState.searchQuery, ignoreCase = true) ||
-                            it.description.contains(currentState.searchQuery, ignoreCase = true)
-                }
-
-                typeMatches && queryMatches
-            }
-            currentState.copy(filteredPublications = filteredList)
-        }
+    fun onLocationChanged(location: String) {
+        _locationQuery.value = location
     }
+
+    fun onTypeFilterChanged(type: String) {
+        _typeFilter.value = type
+    }
+    
+    private data class FilterCriteria(val query: String, val category: String, val location: String, val type: String)
 }

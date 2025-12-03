@@ -3,46 +3,34 @@ package edu.esandpa202502.apptrueq.exchange.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import edu.esandpa202502.apptrueq.model.Offer
-import edu.esandpa202502.apptrueq.exchange.viewmodel.ExchangeViewModel
+import edu.esandpa202502.apptrueq.model.Proposal
 
+/**
+ * Pantalla para HU-07: Listar las propuestas de trueque recibidas por el usuario.
+ */
+// CORRECCIÓN: Se añade @OptIn para poder usar componentes de Material 3 como Scaffold y TopAppBar.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalsReceivedScreen(
     navController: NavController,
-    exchangeViewModel: ExchangeViewModel = viewModel()
+    viewModel: ExchangeViewModel = viewModel()
 ) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val uiState by exchangeViewModel.uiState.collectAsState()
-
-    LaunchedEffect(currentUser) {
-        currentUser?.uid?.let {
-            exchangeViewModel.listenForReceivedOffers(it)
-        }
-    }
+    val uiState by viewModel.uiState.collectAsState()
+    
+    var proposalToAction by remember { mutableStateOf<Proposal?>(null) }
+    var actionType by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Ofertas Recibidas") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
-                    }
-                }
-            )
+            TopAppBar(title = { Text("Propuestas Recibidas") })
         }
     ) { padding ->
         Box(
@@ -55,78 +43,120 @@ fun ProposalsReceivedScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 uiState.error != null -> {
-                    Text(
-                        text = "Error: ${uiState.error}",
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
+                    Text("Error: ${uiState.error}", modifier = Modifier.align(Alignment.Center))
                 }
-                uiState.offers.isEmpty() -> {
-                    Text(
-                        text = "No tienes propuestas pendientes.",
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                uiState.proposals.isEmpty() -> {
+                    Text("No tienes propuestas pendientes.", modifier = Modifier.align(Alignment.Center))
                 }
                 else -> {
-                    ProposalsList(
-                        offers = uiState.offers,
-                        onAccept = { exchangeViewModel.onAcceptOffer(it) },
-                        onReject = { exchangeViewModel.onRejectOffer(it) }
-                    )
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.proposals, key = { it.id }) { proposal ->
+                            ProposalCard(
+                                proposal = proposal,
+                                onAcceptClick = {
+                                    proposalToAction = proposal
+                                    actionType = "aceptar"
+                                },
+                                onRejectClick = {
+                                    proposalToAction = proposal
+                                    actionType = "rechazar"
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
-    }
-}
 
-@Composable
-private fun ProposalsList(
-    offers: List<Offer>,
-    onAccept: (Offer) -> Unit,
-    onReject: (Offer) -> Unit
-) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(offers, key = { it.id }) { offer ->
-            ProposalCard(offer = offer, onAccept = { onAccept(offer) }, onReject = { onReject(offer) })
+        if (proposalToAction != null && actionType != null) {
+            ConfirmationDialog(
+                actionType = actionType!!,
+                onConfirm = {
+                    if (actionType == "aceptar") {
+                        viewModel.acceptProposal(proposalToAction!!)
+                    } else {
+                        viewModel.rejectProposal(proposalToAction!!)
+                    }
+                    proposalToAction = null
+                    actionType = null
+                },
+                onDismiss = {
+                    proposalToAction = null
+                    actionType = null
+                }
+            )
         }
     }
 }
 
+// CORRECCIÓN: Card también es un componente de Material 3.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProposalCard(
-    offer: Offer,
-    onAccept: () -> Unit,
-    onReject: () -> Unit
+fun ProposalCard(
+    proposal: Proposal,
+    onAcceptClick: () -> Unit,
+    onRejectClick: () -> Unit
 ) {
-    Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+    Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
             Text(
-                text = "Propuesta de: ${offer.ownerName}",
+                text = "Propuesta para: ${proposal.publicationTitle}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            Text("Para tu necesidad: \"${offer.needText}\"")
-            Text("A cambio de: \"${offer.title}\"")
-
+            Spacer(Modifier.height(4.dp))
+            Text("De: ${proposal.proposerName}", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
+            Text(proposal.proposalText, style = MaterialTheme.typography.bodyMedium)
+            
+            if (proposal.offeredPublicationId != null) {
+                Text("Ofrece a cambio: [ID: ${proposal.offeredPublicationId}]", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+            }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = onAccept, modifier = Modifier.weight(1f)) {
+            Spacer(Modifier.height(16.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Button(
+                    onClick = onAcceptClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
                     Text("Aceptar")
                 }
-                Button(onClick = onReject, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = onRejectClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
                     Text("Rechazar")
                 }
             }
         }
     }
+}
+
+// CORRECCIÓN: AlertDialog también es un componente experimental de Material 3.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConfirmationDialog(
+    actionType: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar Acción") },
+        text = { Text("¿Estás seguro de que quieres $actionType esta propuesta? Esta acción no se puede deshacer.") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
