@@ -1,180 +1,130 @@
 package edu.esandpa202502.apptrueq.report.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import edu.esandpa202502.apptrueq.report.viewmodel.ReportViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Pantalla para HU-10: Reportar un usuario.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportUserScreen(navController: NavController, reportViewModel: ReportViewModel = viewModel()) {
-
-    // Estado del formulario
-    var reportedEmail by remember { mutableStateOf("") }
-    var reason by remember { mutableStateOf("Escoja motivo de reporte") }
-    var description by remember { mutableStateOf("") }
-    var isMenuExpanded by remember { mutableStateOf(false) }
-    var showCancelDialog by remember { mutableStateOf(false) }
-
-    // Estado de la UI desde el ViewModel
-    val uiState by reportViewModel.uiState.collectAsState()
-    
+fun ReportUserScreen(
+    navController: NavController,
+    reportedUserId: String, // ID del usuario a reportar, recibido desde la navegación.
+    viewModel: ReportViewModel = viewModel()
+) {
+    // --- ESTADOS DE LA UI ---
+    var reason by remember { mutableStateOf("") }
+    var comments by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val motivos = listOf("Fraude", "Incumplimiento", "Lenguaje ofensivo", "Spam")
+    var isDropdownExpanded by remember { mutableStateOf(false) }
 
-    fun clearForm() {
-        reportedEmail = ""
-        reason = "Escoja motivo de reporte"
-        description = ""
-        reportViewModel.resetState()
-    }
+    // MEJORA: Lista predefinida de motivos para el reporte.
+    val reportReasons = listOf(
+        "Contenido inapropiado",
+        "Spam o publicidad no deseada",
+        "Acoso o discurso de odio",
+        "Información falsa",
+        "Intento de estafa",
+        "Otro (especificar en comentarios)"
+    )
 
-    // Efecto para reaccionar a los cambios de estado del ViewModel
-    LaunchedEffect(uiState) {
-        if (uiState.isSuccess) {
-            scope.launch {
-                snackbarHostState.showSnackbar("Reporte enviado correctamente.")
-                clearForm()
+    // Efecto para manejar el resultado del envío del reporte.
+    LaunchedEffect(viewModel.uiState) {
+        viewModel.uiState.collectLatest { state ->
+            if (state.reportSent) {
+                snackbarHostState.showSnackbar("Reporte enviado correctamente. Gracias por tu colaboración.")
+                navController.popBackStack()
             }
-        }
-        if (uiState.error != null) {
-            scope.launch {
-                snackbarHostState.showSnackbar("Error: ${uiState.error}")
-                reportViewModel.resetState()
+            if (state.error != null) {
+                snackbarHostState.showSnackbar("Error: ${state.error}")
             }
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Reportar Usuario") },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") } }
+                navigationIcon = { 
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                    }
+                }
             )
-        }
-    ) { paddingValues ->
-        LazyColumn(
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(padding)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Reporta a un usuario que ha incumplido las normas. Tu reporte es anónimo.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Campo de texto para el correo electrónico
-                    OutlinedTextField(
-                        value = reportedEmail,
-                        onValueChange = { reportedEmail = it },
-                        label = { Text("Correo electrónico del denunciado") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Motivo del reporte
-                    ExposedDropdownMenuBox(expanded = isMenuExpanded, onExpandedChange = { isMenuExpanded = !isMenuExpanded }) {
-                        OutlinedTextField(
-                            value = reason,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Motivo del reporte") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isMenuExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth()
+            // MEJORA: Se reemplaza el TextField por un menú desplegable (ExposedDropdownMenuBox).
+            ExposedDropdownMenuBox(
+                expanded = isDropdownExpanded,
+                onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+            ) {
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = {}, // No se cambia directamente, se selecciona de la lista.
+                    readOnly = true,
+                    label = { Text("Motivo del reporte (obligatorio)") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    isError = uiState.error != null && reason.isBlank()
+                )
+                ExposedDropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false }
+                ) {
+                    reportReasons.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption) },
+                            onClick = {
+                                reason = selectionOption // Actualiza el estado con la selección.
+                                isDropdownExpanded = false
+                            }
                         )
-                        ExposedDropdownMenu(expanded = isMenuExpanded, onDismissRequest = { isMenuExpanded = false }) {
-                            motivos.forEach { motivo ->
-                                DropdownMenuItem(text = { Text(motivo) }, onClick = {
-                                    reason = motivo
-                                    isMenuExpanded = false
-                                })
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Descripción (mínimo 10 caracteres)") },
-                        modifier = Modifier.fillMaxWidth().height(150.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator()
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Button(
-                                onClick = { showCancelDialog = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                            ) {
-                                Text("Cancelar")
-                            }
-
-                            Button(
-                                onClick = {
-                                    reportViewModel.submitReport(reportedEmail, reason, description)
-                                },
-                                // El botón se deshabilita si el formulario no es válido
-                                enabled = reportedEmail.isNotBlank() && reason != "Escoja motivo de reporte" && description.length >= 10
-                            ) {
-                                Text("Enviar Reporte")
-                            }
-                        }
                     }
                 }
             }
-        }
-
-        if (showCancelDialog) {
-            AlertDialog(
-                onDismissRequest = { showCancelDialog = false },
-                title = { Text("Confirmación") },
-                text = { Text("¿Realmente desea cancelar? Se perderán los datos ingresados.") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            clearForm()
-                            showCancelDialog = false
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Text("Sí")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showCancelDialog = false }) {
-                        Text("No")
-                    }
-                }
+            
+            // Campo para comentarios adicionales.
+            OutlinedTextField(
+                value = comments,
+                onValueChange = { comments = it },
+                label = { Text("Comentarios adicionales (opcional)") },
+                modifier = Modifier.fillMaxWidth().height(150.dp)
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Botón para enviar el reporte.
+            Button(
+                onClick = {
+                    viewModel.submitReport(reportedUserId, reason, comments)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading && reason.isNotBlank() // Se activa solo si hay un motivo seleccionado.
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text("Enviar Reporte")
+                }
+            }
         }
     }
 }

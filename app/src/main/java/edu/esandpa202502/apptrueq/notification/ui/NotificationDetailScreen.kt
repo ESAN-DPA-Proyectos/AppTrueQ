@@ -21,7 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import edu.esandpa202502.apptrueq.notification.viewmodel.NotificationViewModel
+// QA: Se importa el ViewModel correcto para esta pantalla.
+import edu.esandpa202502.apptrueq.notification.viewmodel.NotificationDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,12 +30,14 @@ fun NotificationDetailScreen(
     navController: NavController,
     notificationId: String,
     referenceId: String,
-    notificationViewModel: NotificationViewModel = viewModel()
+    // QA: Se inyecta el ViewModel correcto: NotificationDetailViewModel.
+    viewModel: NotificationDetailViewModel = viewModel()
 ) {
-    val detailUiState by notificationViewModel.detailUiState.collectAsState()
+    // QA: Ahora el compilador puede inferir el tipo porque `detailUiState` sí existe en el ViewModel correcto.
+    val detailUiState by viewModel.detailUiState.collectAsState()
 
     LaunchedEffect(referenceId) {
-        notificationViewModel.loadProposal(referenceId)
+        viewModel.loadProposal(referenceId)
     }
 
     LaunchedEffect(detailUiState.actionCompleted) {
@@ -60,7 +63,8 @@ fun NotificationDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             when {
                 detailUiState.isLoading -> CircularProgressIndicator()
@@ -88,11 +92,11 @@ fun NotificationDetailScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
-                                    Button(onClick = { notificationViewModel.acceptProposal(proposal) }) {
+                                    Button(onClick = { viewModel.acceptProposal(proposal) }) {
                                         Text("Aceptar")
                                     }
                                     Button(
-                                        onClick = { notificationViewModel.rejectProposal(proposal) },
+                                        onClick = { viewModel.rejectProposal(proposal) },
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                                     ) {
                                         Text("Rechazar")
@@ -102,9 +106,9 @@ fun NotificationDetailScreen(
                         }
                     }
                 }
-            } else {
-                // Muestra un indicador si la oferta no se encuentra en la lista (o está cargando)
-                CircularProgressIndicator()
+                else -> {
+                    Text("No se encontró la propuesta.")
+                }
             }
         }
     }

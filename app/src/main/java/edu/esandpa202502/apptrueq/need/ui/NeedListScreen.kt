@@ -85,7 +85,9 @@ fun NeedListScreen(vm: NeedViewModel) {
 fun NeedCard(need: Need) {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
     sdf.timeZone = TimeZone.getTimeZone("America/Lima")
-    val date = need.createdAt?.let { sdf.format(it) } ?: ""
+    
+    // CORRECCIÓN: Se convierte el Timestamp de Firebase a Date antes de formatear.
+    val date = need.createdAt?.toDate()?.let { sdf.format(it) } ?: "Fecha no disponible"
 
     Card(
         modifier = Modifier.fillMaxWidth(),

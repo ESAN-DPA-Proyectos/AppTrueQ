@@ -13,6 +13,8 @@ data class Report(
     val reportingUserId: String = "",
     val reason: String = "",
     val description: String = "",
+    // HU-10: Se añade el campo de estado para el reporte.
+    val status: String = "Pendiente de revisión", // Por defecto, todo reporte nuevo está pendiente.
     @ServerTimestamp
     val createdAt: Timestamp? = null
 )
