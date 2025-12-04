@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.Proposal
-import edu.esandpa202502.apptrueq.proposal.repository.ProposalsRepository
+import edu.esandpa202502.apptrueq.repository.proposal.Revisar_ProposalsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ data class ProposalsHistoryUiState(
 
 class ProposalsHistoryViewModel : ViewModel() {
 
-    private val repository = ProposalsRepository()
+    private val repository = Revisar_ProposalsRepository()
     private val auth = FirebaseAuth.getInstance()
 
     private val _uiState = MutableStateFlow(ProposalsHistoryUiState())

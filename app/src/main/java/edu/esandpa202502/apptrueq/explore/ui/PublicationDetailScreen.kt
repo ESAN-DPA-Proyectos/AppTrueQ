@@ -8,24 +8,34 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.R
-import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.proposal.ui.ProposalDialog
-import edu.esandpa202502.apptrueq.viewmodel.PublicationDetailViewModel
-import edu.esandpa202502.apptrueq.viewmodel.PublicationDetailViewModelFactory
+import edu.esandpa202502.apptrueq.proposal.viewmodel.PublicationDetailViewModel
+import edu.esandpa202502.apptrueq.proposal.viewmodel.PublicationDetailViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +48,12 @@ fun PublicationDetailScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     val currentUser = FirebaseAuth.getInstance().currentUser
-    var showProposalDialog by remember { mutableStateOf(false) }
+    val showProposalDialog = remember { mutableStateOf(false) }
 
-    if (showProposalDialog) {
+    if (showProposalDialog.value) {
         ProposalDialog(
             viewModel = viewModel,
-            onDismiss = { showProposalDialog = false }
+            onDismiss = { showProposalDialog.value = false }
         )
     }
 
@@ -56,16 +66,17 @@ fun PublicationDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 },
-                // HU-10: Se añade la sección de acciones en la TopAppBar.
                 actions = {
-                    // El botón de reportar solo aparece si el usuario actual NO es el dueño de la publicación.
                     val publicationOwnerId = uiState.publication?.userId
                     if (publicationOwnerId != null && publicationOwnerId != currentUser?.uid) {
                         IconButton(onClick = {
-                            // Navega a la pantalla de reporte, pasando el ID del usuario a reportar.
-                            navController.navigate(Routes.ReportUser.createRoute(publicationOwnerId))
+                            // Navega usando una ruta simple (ajusta si tu NavGraph usa otra)
+                            navController.navigate("reportUsr_user/$publicationOwnerId")
                         }) {
-                            Icon(Icons.Default.Report, contentDescription = "Reportar Usuario")
+                            Icon(
+                                Icons.Default.Report,
+                                contentDescription = "Reportar Usuario"
+                            )
                         }
                     }
                 }
@@ -74,7 +85,7 @@ fun PublicationDetailScreen(
         floatingActionButton = {
             if (uiState.publication?.userId != currentUser?.uid) {
                 ExtendedFloatingActionButton(
-                    onClick = { showProposalDialog = true },
+                    onClick = { showProposalDialog.value = true },
                     icon = { Icon(Icons.Filled.SwapHoriz, "Proponer Trueque") },
                     text = { Text("Proponer Trueque") }
                 )
@@ -90,12 +101,14 @@ fun PublicationDetailScreen(
                 uiState.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 uiState.error != null -> {
                     Text(
                         text = "Error: ${uiState.error}",
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 uiState.publication != null -> {
                     val publication = uiState.publication!!
                     Column(
@@ -121,15 +134,19 @@ fun PublicationDetailScreen(
                             )
                         }
                         Spacer(Modifier.height(16.dp))
-                        Text(publication.title, style = MaterialTheme.typography.titleLarge)
-                        Text("Categoría: ${publication.category}", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            publication.title,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            "Categoría: ${publication.category}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Spacer(Modifier.height(8.dp))
-                        Text(publication.description, style = MaterialTheme.typography.bodyLarge)
-                        Divider(modifier = Modifier.padding(vertical = 16.dp))
-
-                        if (publication.userId == currentUser?.uid) {
-                            Text("Esta es una de tus publicaciones.", style = MaterialTheme.typography.bodyMedium)
-                        }
+                        Text(
+                            publication.description,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
 
                         Spacer(modifier = Modifier.height(80.dp))
                     }

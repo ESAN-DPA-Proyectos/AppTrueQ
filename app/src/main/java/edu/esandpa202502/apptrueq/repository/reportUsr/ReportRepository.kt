@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.repository.report
+package edu.esandpa202502.apptrueq.repository.reportUsr
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query

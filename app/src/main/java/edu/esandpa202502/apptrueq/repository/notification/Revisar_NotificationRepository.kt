@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.notification.repository
+package edu.esandpa202502.apptrueq.repository.notification
 
 import com.google.firebase.firestore.FirebaseFirestore
 import edu.esandpa202502.apptrueq.model.NotificationItem
@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-class NotificationRepository {
+class Revisar_NotificationRepository {
 
     private val db = FirebaseFirestore.getInstance()
 

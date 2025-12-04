@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.exchange.ui
+package edu.esandpa202502.apptrueq.exchange.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.model.Trade
 import edu.esandpa202502.apptrueq.model.NotificationItem
+import edu.esandpa202502.apptrueq.model.TradeStatus
 import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
 import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
 import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 
 /**
  * Estado de la UI para la pantalla de Propuestas Recibidas (HU-07).
@@ -25,7 +25,7 @@ data class ExchangeUiState(
     val error: String? = null
 )
 
-class ExchangeViewModel : ViewModel() {
+class ProposalExchangeViewModel : ViewModel() {
 
     // --- REPOSITORIOS ---
     private val proposalRepository = ProposalRepository()
@@ -66,15 +66,16 @@ class ExchangeViewModel : ViewModel() {
     fun acceptProposal(proposal: Proposal) {
         viewModelScope.launch {
             try {
+                // 1. Cambiar el estado de la propuesta
                 proposalRepository.updateProposalStatus(proposal.id, "ACEPTADA")
-                val newTrade = Trade(
-                    publicationId = proposal.publicationId,
-                    offerentId = proposal.proposerId,
-                    receiverId = proposal.publicationOwnerId,
-                    status = "aceptado"
-                )
-                tradeRepository.createTrade(newTrade)
 
+                // 2. Crear el trueque usando el método correcto del repositorio
+                tradeRepository.createTradeFromProposal(
+                    proposal = proposal,
+                    receiverName = ""  // No disponible en Proposal; se llenará cuando se implemente User Profile
+                )
+
+                // 3. Notificar al proponente
                 val notification = NotificationItem(
                     userId = proposal.proposerId,
                     title = "¡Tu propuesta fue aceptada!",
@@ -83,15 +84,17 @@ class ExchangeViewModel : ViewModel() {
                     referenceId = proposal.id
                 )
                 notificationRepository.addNotification(notification)
-                
-                // Recargamos la lista para que la propuesta aceptada ya no aparezca.
+
+                // 4. Recargar la lista
                 loadProposalsReceived()
 
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error al aceptar la propuesta.") }
+                _uiState.update { it.copy(error = "Error al aceptar la propuesta: ${e.message}") }
             }
         }
     }
+
+
 
     /**
      * Rechaza una propuesta y notifica al proponente.
@@ -112,7 +115,7 @@ class ExchangeViewModel : ViewModel() {
 
                 // Recargamos la lista para que la propuesta rechazada ya no aparezca.
                 loadProposalsReceived()
-                
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Error al rechazar la propuesta.") }
             }

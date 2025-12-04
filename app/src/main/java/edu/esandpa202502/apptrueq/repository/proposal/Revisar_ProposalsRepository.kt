@@ -1,12 +1,11 @@
-
-package edu.esandpa202502.apptrueq.proposal.repository
+package edu.esandpa202502.apptrueq.repository.proposal
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.Proposal
 import kotlinx.coroutines.tasks.await
 
-class ProposalsRepository {
+class Revisar_ProposalsRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val proposalsCollection = db.collection("proposals")

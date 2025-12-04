@@ -20,7 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.viewmodel.PublicationDetailViewModel
+import edu.esandpa202502.apptrueq.proposal.viewmodel.PublicationDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

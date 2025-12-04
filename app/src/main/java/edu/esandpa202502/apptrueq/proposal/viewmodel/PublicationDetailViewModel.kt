@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.viewmodel
+package edu.esandpa202502.apptrueq.proposal.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

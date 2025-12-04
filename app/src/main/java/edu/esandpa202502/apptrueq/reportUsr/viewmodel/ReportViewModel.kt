@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.report.viewmodel
+package edu.esandpa202502.apptrueq.reportUsr.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
