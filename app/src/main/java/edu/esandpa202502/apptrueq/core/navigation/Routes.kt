@@ -11,7 +11,7 @@ sealed class Routes(val route: String) {
     object TradeHistory : Routes("trade_history")
     object ProposalsReceived : Routes("proposals_received") // Renombrado de OffersReceived
     object Notifications : Routes("notifications")
-    object ReportUser : Routes("report_user")
+    object ReportUser : Routes("reportUsr_user")
     object Offer : Routes("offer")
     object Need : Routes("need")
 

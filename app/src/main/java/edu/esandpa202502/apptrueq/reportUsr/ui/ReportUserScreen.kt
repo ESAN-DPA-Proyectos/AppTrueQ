@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.report.ui
+package edu.esandpa202502.apptrueq.reportUsr.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

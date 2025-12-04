@@ -1,9 +1,9 @@
-package edu.esandpa202502.apptrueq.report.ui
+package edu.esandpa202502.apptrueq.moderation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.esandpa202502.apptrueq.model.Report
-import edu.esandpa202502.apptrueq.repository.report.ReportRepository
+import edu.esandpa202502.apptrueq.repository.reportUsr.ReportRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

@@ -20,7 +20,7 @@ import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
-import edu.esandpa202502.apptrueq.report.ui.ReportUserScreen
+import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
@@ -57,12 +57,23 @@ fun NavGraph(navController: NavHostController) {
             ExploreScreen(navController = navController)
         }
 
+        composable(Routes.Offer.route) {
+            OfferScreen()
+        }
+
+        composable(Routes.Need.route) {
+            NeedScreen()
+        }
+
         composable(
             route = Routes.PublicationDetail.route,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
             val publicationId = backStackEntry.arguments?.getString("id") ?: ""
-            PublicationDetailScreen(navController = navController, publicationId = publicationId)
+            PublicationDetailScreen(
+                navController = navController,
+                publicationId = publicationId
+            )
         }
 
         composable(Routes.TradeHistory.route) {
@@ -78,7 +89,10 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            TradeDetailScreen(tradeId = tradeId, onNavigateBack = { navController.popBackStack() })
+            TradeDetailScreen(
+                tradeId = tradeId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Routes.Notifications.route) {
@@ -86,10 +100,16 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(
-            route = Routes.NotificationDetail.route, 
+            route = Routes.NotificationDetail.route,
             arguments = listOf(
-                navArgument("notificationId") { type = NavType.StringType; nullable = true },
-                navArgument("referenceId") { type = NavType.StringType; nullable = true }
+                navArgument("notificationId") {
+                    type = NavType.StringType
+                    nullable = true
+                },
+                navArgument("referenceId") {
+                    type = NavType.StringType
+                    nullable = true
+                }
             )
         ) { backStackEntry ->
             val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
@@ -101,21 +121,31 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // HU-10: CORRECCIÓN - Se añade la definición y extracción del argumento 'userId'.
+        // HU-10: Reporte de usuario, ruta con argumento obligatorio {userId}
+//        composable(
+//            route = "reportUsr_user/{userId}",
+//            arguments = listOf(
+//                navArgument("userId") { type = NavType.StringType }
+//            )
+//        ) { backStackEntry ->
+//            val reportedUserId = backStackEntry.arguments?.getString("userId") ?: ""
+//            ReportUserScreen(
+//                navController = navController,
+//                reportedUserId = reportedUserId
+//            )
+//        }
+
+
+
+        // HU-10: Reporte de usuario desde el menú lateral (sin argumento obligatorio por ahora)
         composable(
-            route = Routes.ReportUser.route,
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val reportedUserId = backStackEntry.arguments?.getString("userId") ?: ""
-            ReportUserScreen(navController = navController, reportedUserId = reportedUserId)
-        }
-
-        composable(Routes.Offer.route) {
-            OfferScreen()
-        }
-
-        composable(Routes.Need.route) {
-            NeedScreen()
+            route = Routes.ReportUser.route
+        ) {
+            // Por ahora no se pasa un userId específico desde el Drawer
+            ReportUserScreen(
+                navController = navController,
+                reportedUserId = ""
+            )
         }
     }
 }

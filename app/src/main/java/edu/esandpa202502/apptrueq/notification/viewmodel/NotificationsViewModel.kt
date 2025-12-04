@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.NotificationItem
-import edu.esandpa202502.apptrueq.notification.repository.NotificationRepository
+import edu.esandpa202502.apptrueq.repository.notification.Revisar_NotificationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ data class NotificationsUiState(
 
 class NotificationsViewModel : ViewModel() {
 
-    private val notificationRepository = NotificationRepository()
+    private val notificationRepository = Revisar_NotificationRepository()
     private val auth = FirebaseAuth.getInstance()
 
     private val _uiState = MutableStateFlow(NotificationsUiState())
