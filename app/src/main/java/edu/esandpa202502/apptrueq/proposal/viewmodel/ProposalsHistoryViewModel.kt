@@ -3,68 +3,67 @@ package edu.esandpa202502.apptrueq.proposal.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import edu.esandpa202502.apptrueq.model.Trade
-import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
+import edu.esandpa202502.apptrueq.model.Proposal
+import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Estado de la UI para la pantalla de Historial de Trueques (HU-09).
+ * SOLUCIÓN: Se rediseña el UiState para que contenga las 3 listas que la UI necesita.
  */
-data class TradeHistoryUiState(
-    val isLoading: Boolean = false,
-    val trades: List<Trade> = emptyList(),
+data class ProposalsHistoryUiState(
+    val isLoading: Boolean = true,
+    val sentProposals: List<Proposal> = emptyList(),
+    val receivedProposals: List<Proposal> = emptyList(),
+    val acceptedProposals: List<Proposal> = emptyList(),
     val error: String? = null
 )
 
 /**
- * ViewModel ÚNICO Y CONSOLIDADO para el historial de propuestas/trueques.
+ * ViewModel rediseñado para la pantalla de historial de propuestas.
  */
 class ProposalsHistoryViewModel : ViewModel() {
 
-    private val tradeRepository = TradeRepository()
+    private val proposalRepository = ProposalRepository()
     private val auth = FirebaseAuth.getInstance()
 
-    private val _uiState = MutableStateFlow(TradeHistoryUiState())
-    val uiState = _uiState.asStateFlow()
-
-    private var allTrades: List<Trade> = emptyList()
-    private val _statusFilter = MutableStateFlow("Todos")
-    val statusFilter = _statusFilter.asStateFlow()
+    private val _uiState = MutableStateFlow(ProposalsHistoryUiState())
+    val uiState: StateFlow<ProposalsHistoryUiState> = _uiState.asStateFlow()
 
     init {
-        loadTradeHistory()
-
-        viewModelScope.launch {
-            _statusFilter.collect { status ->
-                val filteredList = if (status.equals("Todos", ignoreCase = true)) {
-                    allTrades
-                } else {
-                    allTrades.filter { it.status.equals(status, ignoreCase = true) }
-                }
-                _uiState.update { it.copy(trades = filteredList) }
-            }
-        }
+        loadProposalsHistory()
     }
 
-    private fun loadTradeHistory() {
-        val userId = auth.currentUser?.uid ?: return
+    private fun loadProposalsHistory() {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _uiState.update { it.copy(isLoading = false, error = "Usuario no autenticado") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                allTrades = tradeRepository.getTradeHistory(userId)
-                onStatusFilterChanged(_statusFilter.value)
+                // 1. Obtiene las dos listas de propuestas desde el repositorio.
+                val sent = proposalRepository.getProposalsSentByUser(userId)
+                val received = proposalRepository.getProposalsReceivedForUser(userId)
+
+                // 2. Clasifica las propuestas en las 3 categorías que la UI necesita.
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        sentProposals = sent.filter { p -> p.status == "PENDIENTE" },
+                        receivedProposals = received, // Ya vienen filtradas como PENDIENTE desde el repo
+                        acceptedProposals = sent.filter { p -> p.status == "ACEPTADA" }
+                    )
+                }
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error al cargar el historial: ${e.message}") }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isLoading = false, error = "Error al cargar el historial de propuestas.") }
             }
         }
-    }
-
-    fun onStatusFilterChanged(newStatus: String) {
-        _statusFilter.value = newStatus
     }
 }

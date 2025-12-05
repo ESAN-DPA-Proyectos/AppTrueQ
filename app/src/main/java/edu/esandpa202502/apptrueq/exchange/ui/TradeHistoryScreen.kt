@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.esandpa202502.apptrueq.model.Trade
-// SOLUCIÓN: Se importa el ViewModel único y consolidado que creamos.
-import edu.esandpa202502.apptrueq.proposal.viewmodel.ProposalsHistoryViewModel
+// SOLUCIÓN: Se importa el ViewModel DEDICADO y CORRECTO para esta pantalla.
+import edu.esandpa202502.apptrueq.exchange.viewmodel.TradeHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -25,13 +25,12 @@ import java.util.TimeZone
 @Composable
 fun TradeHistoryScreen(
     navController: NavController,
-    // SOLUCIÓN: Se utiliza el ViewModel correcto y definitivo.
-    viewModel: ProposalsHistoryViewModel = viewModel()
+    // SOLUCIÓN: Se utiliza su propio ViewModel, `TradeHistoryViewModel`.
+    viewModel: TradeHistoryViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedStatus by viewModel.statusFilter.collectAsState()
     
-    // Se incluyen todos los posibles estados para el filtro.
     val statusOptions = listOf("Todos", "Aceptado", "Rechazado", "Cancelado", "Propuesto", "Completado")
 
     Scaffold(
@@ -88,7 +87,6 @@ fun TradeHistoryCard(trade: Trade) {
 
     Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // MEJORA: Se usan los campos enriquecidos del modelo para una UI más clara.
             Text("Propuesta para: ${trade.publicationTitle}", fontWeight = FontWeight.Bold)
             Text("De: ${trade.offerentName} a ${trade.receiverName}")
             Divider()
