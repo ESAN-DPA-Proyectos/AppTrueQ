@@ -2,58 +2,55 @@ package edu.esandpa202502.apptrueq.repository.trade
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.model.Trade
-import edu.esandpa202502.apptrueq.model.TradeStatus
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Repositorio para manejar las operaciones de datos relacionadas con el Historial de Trueques (Trades).
+ */
 class TradeRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val tradesCollection = db.collection("trades")
 
     /**
-     * Crea un nuevo registro de Trade en Firestore a partir de una propuesta aceptada.
+     * Añade un nuevo registro de trueque a Firestore.
      */
-    suspend fun createTradeFromProposal(proposal: Proposal, receiverName: String): String {
-        val newTrade = Trade(
-            proposalId = proposal.id,
-            publicationId = proposal.publicationId,
-            publicationTitle = proposal.publicationTitle,
-            offerentId = proposal.proposerId,
-            offerentName = proposal.proposerName,
-            receiverId = proposal.publicationOwnerId,
-            receiverName = receiverName,
-            status = TradeStatus.ACCEPTED // El trueque nace como 'ACEPTADO'
-        )
-
-        val tradeDocument = tradesCollection.add(newTrade).await()
-        return tradeDocument.id
+    suspend fun createTrade(trade: Trade) {
+        try {
+            tradesCollection.add(trade).await()
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     /**
-     * Obtiene el historial completo de trueques para un usuario, tanto los que ha ofrecido como los que ha recibido.
+     * HU-09: Obtiene el historial de trueques para un usuario específico.
+     * Un usuario puede ser tanto el que ofrece (`offerentId`) como el que recibe (`receiverId`).
+     * Por eso, necesitamos hacer dos consultas y combinar los resultados.
      */
-    suspend fun getTradeHistory(userId: String): List<Trade> {
-        val offeredTrades = tradesCollection
-            .whereEqualTo("offerentId", userId)
-            .orderBy("updatedAt", Query.Direction.DESCENDING)
-            .get()
-            .await()
-            .toObjects(Trade::class.java)
+    suspend fun getTradeHistoryForUser(userId: String): List<Trade> {
+        try {
+            // Consulta 1: Trueques donde el usuario es el OFERTANTE.
+            val offeredTradesQuery = tradesCollection.whereEqualTo("offerentId", userId).get().await()
+            val offeredTrades = offeredTradesQuery.documents.mapNotNull { doc ->
+                doc.toObject(Trade::class.java)?.copy(id = doc.id)
+            }
 
-        val receivedTrades = tradesCollection
-            .whereEqualTo("receiverId", userId)
-            .orderBy("updatedAt", Query.Direction.DESCENDING)
-            .get()
-            .await()
-            .toObjects(Trade::class.java)
+            // Consulta 2: Trueques donde el usuario es el RECEPTOR.
+            val receivedTradesQuery = tradesCollection.whereEqualTo("receiverId", userId).get().await()
+            val receivedTrades = receivedTradesQuery.documents.mapNotNull { doc ->
+                doc.toObject(Trade::class.java)?.copy(id = doc.id)
+            }
 
-        // Combinamos las listas, eliminamos duplicados y re-ordenamos por la fecha más reciente.
-        return (offeredTrades + receivedTrades).distinctBy { it.id }.sortedByDescending { it.updatedAt }
+            // Combinamos las dos listas, eliminamos duplicados (por si acaso) y ordenamos por fecha.
+            return (offeredTrades + receivedTrades)
+                .distinctBy { it.id }
+                .sortedByDescending { it.createdAt }
+
+        } catch (e: Exception) {
+            println("Error getting trade history: ${e.message}")
+            throw e // Propagamos la excepción para que el ViewModel la maneje.
+        }
     }
 }
