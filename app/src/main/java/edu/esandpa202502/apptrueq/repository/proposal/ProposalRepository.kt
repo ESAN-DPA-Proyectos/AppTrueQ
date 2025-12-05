@@ -11,39 +11,26 @@ class ProposalRepository {
     private val db = FirebaseFirestore.getInstance()
     private val proposalsCollection = db.collection("proposals")
 
-    /**
-     * SOLUCIÓN: Crea una propuesta y la notificación correspondiente en una sola operación atómica (batch).
-     * Esto asegura que si una de las dos escrituras falla, ninguna se complete.
-     * Centraliza la lógica de negocio, quitándosela al ViewModel.
-     * @param proposal El objeto Proposal a guardar.
-     * @return El ID de la propuesta recién creada.
-     */
     suspend fun createProposalAndNotify(proposal: Proposal): String {
         try {
             val batch = db.batch()
-
-            // 1. Referencia para la nueva propuesta (con ID autogenerado)
             val newProposalRef = proposalsCollection.document()
-            // Se crea una copia de la propuesta para asignarle el ID que acabamos de generar.
+
+            // Se usa el ID autogenerado para guardarlo también dentro del documento.
             val proposalWithId = proposal.copy(id = newProposalRef.id)
 
-            // 2. Referencia para la nueva notificación
             val notificationRef = db.collection("notifications").document()
             val notification = NotificationItem(
                 userId = proposal.publicationOwnerId,
                 title = "¡Has recibido una nueva propuesta!",
                 message = "${proposal.proposerName} ha hecho una propuesta para tu publicación: '${proposal.publicationTitle}'.",
                 type = "new_proposal",
-                referenceId = newProposalRef.id // Se usa el ID de la nueva propuesta
+                referenceId = newProposalRef.id
             )
 
-            // 3. Se añaden ambas operaciones al lote de escritura
             batch.set(newProposalRef, proposalWithId)
             batch.set(notificationRef, notification)
-
-            // 4. Se ejecuta el lote
             batch.commit().await()
-
             return newProposalRef.id
         } catch (e: Exception) {
             println("Error creating proposal and notification: ${e.message}")
@@ -51,23 +38,36 @@ class ProposalRepository {
         }
     }
 
+    /**
+     * SOLUCIÓN: Se implementa la lógica que faltaba.
+     * Obtiene una propuesta por su ID.
+     */
     suspend fun getProposalById(proposalId: String): Proposal? {
         return try {
             val document = proposalsCollection.document(proposalId).get().await()
             document.toObject(Proposal::class.java)?.copy(id = document.id)
         } catch (e: Exception) {
-            throw e
+            println("Error getting proposal by ID: ${e.message}")
+            null
         }
     }
 
+    /**
+     * SOLUCIÓN: Se implementa la lógica que faltaba.
+     * Actualiza el estado de una propuesta.
+     */
     suspend fun updateProposalStatus(proposalId: String, newStatus: String) {
         try {
             proposalsCollection.document(proposalId).update("status", newStatus).await()
         } catch (e: Exception) {
+            println("Error updating proposal status: ${e.message}")
             throw e
         }
     }
 
+    /**
+     * Obtiene todas las propuestas PENDIENTES que un usuario ha RECIBIDO.
+     */
     suspend fun getProposalsReceivedForUser(userId: String): List<Proposal> {
         return try {
             val querySnapshot = proposalsCollection
@@ -76,26 +76,51 @@ class ProposalRepository {
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-
+            // SOLUCIÓN: Se usa mapeo manual para asegurar que se incluye el ID del documento.
             querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(Proposal::class.java)?.copy(id = doc.id)
             }
         } catch (e: Exception) {
-            println("Error getting proposals for user: ${e.message}")
+            println("Error getting received proposals: ${e.message}")
             emptyList()
         }
     }
 
+    /**
+     * Obtiene todas las propuestas que un usuario ha ENVIADO.
+     */
+    suspend fun getProposalsSentByUser(userId: String): List<Proposal> {
+        return try {
+            val querySnapshot = proposalsCollection
+                .whereEqualTo("proposerId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+            // SOLUCIÓN: Se usa mapeo manual para asegurar que se incluye el ID del documento.
+            querySnapshot.documents.mapNotNull { doc ->
+                doc.toObject(Proposal::class.java)?.copy(id = doc.id)
+            }
+        } catch (e: Exception) {
+            println("Error getting sent proposals: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * SOLUCIÓN: Se implementa la lógica que faltaba.
+     * Comprueba si ya existe una propuesta de un usuario para una publicación específica.
+     */
     suspend fun hasExistingProposal(userId: String, publicationId: String): Boolean {
         return try {
-            val query = proposalsCollection
+            val querySnapshot = proposalsCollection
                 .whereEqualTo("proposerId", userId)
                 .whereEqualTo("publicationId", publicationId)
                 .limit(1)
                 .get()
                 .await()
-            !query.isEmpty
+            !querySnapshot.isEmpty
         } catch (e: Exception) {
+            println("Error checking for existing proposal: ${e.message}")
             false
         }
     }
