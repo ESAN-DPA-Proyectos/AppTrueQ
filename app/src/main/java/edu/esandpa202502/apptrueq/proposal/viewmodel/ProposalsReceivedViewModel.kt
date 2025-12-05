@@ -1,55 +1,60 @@
-package edu.esandpa202502.apptrueq.proposal.viewmodel
+package edu.esandpa202502.apptrueq.exchange.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Proposal
-import edu.esandpa202502.apptrueq.model.Trade
-// Se elimina el import de TradeStatus ya que no existe y no se usa en este archivo.
+import edu.esandpa202502.apptrueq.repository.exchange.TradeRepository
 import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
 import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
-import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class ProposalsReceivedUiState(
-    val isLoading: Boolean = true,
+/**
+ * Estado SOLO para la pantalla de propuestas (HU-07).
+ */
+data class ProposalsUiState(
+    val isLoading: Boolean = false,
     val proposals: List<Proposal> = emptyList(),
     val error: String? = null
 )
 
-class ProposalsReceivedViewModel : ViewModel() {
+class ProposalExchangeViewModel : ViewModel() {
 
     private val proposalRepository = ProposalRepository()
     private val tradeRepository = TradeRepository()
     private val notificationRepository = NotificationRepository()
     private val auth = FirebaseAuth.getInstance()
 
-    private val _uiState = MutableStateFlow(ProposalsReceivedUiState())
-    val uiState: StateFlow<ProposalsReceivedUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ProposalsUiState())
+    val uiState: StateFlow<ProposalsUiState> = _uiState.asStateFlow()
 
     init {
-        loadReceivedProposals()
+        loadProposalsReceived()
     }
 
-    private fun loadReceivedProposals() {
-        val userId = auth.currentUser?.uid
-        if (userId == null) {
-            _uiState.value = ProposalsReceivedUiState(isLoading = false, error = "Usuario no autenticado.")
-            return
-        }
+    fun loadProposalsReceived() {
+        val userId = auth.currentUser?.uid ?: return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val proposals = proposalRepository.getProposalsReceivedForUser(userId)
-                _uiState.update { it.copy(isLoading = false, proposals = proposals) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        proposals = proposals,
+                        error = null
+                    )
+                }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update {
+                    it.copy(isLoading = false, error = "Error al cargar las propuestas: ${e.message}")
+                }
             }
         }
     }
@@ -57,28 +62,26 @@ class ProposalsReceivedViewModel : ViewModel() {
     fun acceptProposal(proposal: Proposal) {
         viewModelScope.launch {
             try {
-                // 1. Actualiza el estado de la propuesta
                 proposalRepository.updateProposalStatus(proposal.id, "ACEPTADA")
 
-                // 2. Llama al método correcto del repositorio que se encarga de crear el objeto Trade internamente.
-                tradeRepository.createTradeFromProposal(
-                    proposal = proposal,
-                    receiverName = auth.currentUser?.displayName ?: "Usuario"
+                tradeRepository.createTrade(
+                    offerId = proposal.publicationId,
+                    receiverId = proposal.publicationOwnerId,
+                    proposerId = proposal.proposerId,
+                    proposerName = proposal.proposerName
                 )
 
-                // 3. Notifica al proponente que su propuesta fue aceptada
-                val notification = NotificationItem(
-                    userId = proposal.proposerId,
-                    title = "¡Tu propuesta ha sido aceptada!",
-                    message = "Tu propuesta para '${proposal.publicationTitle}' fue aceptada. ¡Coordina el intercambio!",
-                    type = "proposal_accepted",
-                    referenceId = proposal.id
+                notificationRepository.addNotification(
+                    NotificationItem(
+                        userId = proposal.proposerId,
+                        title = "¡Tu propuesta fue aceptada!",
+                        message = "El dueño de '${proposal.publicationTitle}' aceptó tu propuesta.",
+                        type = "proposal_accepted",
+                        referenceId = proposal.id
+                    )
                 )
-                notificationRepository.addNotification(notification)
 
-                // 4. Recarga la lista para que la propuesta aceptada desaparezca de la UI
-                loadReceivedProposals()
-
+                loadProposalsReceived()
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Error al aceptar la propuesta: ${e.message}") }
             }
@@ -90,24 +93,20 @@ class ProposalsReceivedViewModel : ViewModel() {
             try {
                 proposalRepository.updateProposalStatus(proposal.id, "RECHAZADA")
 
-                val notification = NotificationItem(
-                    title = "Propuesta rechazada",
-                    message = "Lamentablemente, tu propuesta para '${proposal.publicationTitle}' fue rechazada.",
-                    userId = proposal.proposerId,
-                    type = "proposal_rejected",
-                    referenceId = proposal.id
+                notificationRepository.addNotification(
+                    NotificationItem(
+                        userId = proposal.proposerId,
+                        title = "Propuesta rechazada",
+                        message = "Tu propuesta para '${proposal.publicationTitle}' fue rechazada.",
+                        type = "proposal_rejected",
+                        referenceId = proposal.id
+                    )
                 )
-                notificationRepository.addNotification(notification)
 
-                loadReceivedProposals()
-
+                loadProposalsReceived()
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error al rechazar la propuesta: ${e.message}") }
+                _uiState.update { it.copy(error = "Error al rechazar la propuesta.") }
             }
         }
-    }
-
-    fun dismissError() {
-        _uiState.update { it.copy(error = null) }
     }
 }

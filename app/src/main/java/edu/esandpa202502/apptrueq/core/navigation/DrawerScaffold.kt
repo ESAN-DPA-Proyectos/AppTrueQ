@@ -10,7 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -32,19 +33,67 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
     val scope = rememberCoroutineScope()
 
     val items = listOf(
-        NavigationItem("Dashboard", Icons.Filled.Home, Icons.Outlined.Home, route = Routes.Dashboard.route),
-        NavigationItem("Explorar", Icons.Filled.Search, Icons.Outlined.Search, route = Routes.Explore.route),
-        NavigationItem("Login", Icons.Filled.Person, Icons.Outlined.Person, route = Routes.Login.route),
-        // NavigationItem("Perfil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Profile.route), // Comentado si Routes.Profile no existe
-        NavigationItem("Oferta", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Offer.route),
-        NavigationItem("Necesidad", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Need.route),
-        NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
-        NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, route = Routes.Notifications.route),
-        NavigationItem("Reportar Usuario", Icons.Filled.Report, Icons.Outlined.Report, route = Routes.ReportUser.route),
-        // CORRECCIÓN: Se actualiza el título y la ruta para usar "ProposalsReceived" en lugar de "OffersReceived".
-        NavigationItem("Propuestas Recibidas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route),
-        NavigationItem("Cerrar Sesión", Icons.Filled.Logout, Icons.Outlined.Logout, route = Routes.Logout.route)
-        
+        NavigationItem(
+            "Dashboard",
+            Icons.Filled.Home,
+            Icons.Outlined.Home,
+            route = Routes.Dashboard.route
+        ),
+        NavigationItem(
+            "Explorar",
+            Icons.Filled.Search,
+            Icons.Outlined.Search,
+            route = Routes.Explore.route
+        ),
+        NavigationItem(
+            "Login",
+            Icons.Filled.Person,
+            Icons.Outlined.Person,
+            route = Routes.Login.route
+        ),
+        // NavigationItem("Perfil", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Profile.route),
+        NavigationItem(
+            "Oferta",
+            Icons.Filled.ShoppingCart,      // Ícono para ofertas
+            Icons.Outlined.ShoppingCart,
+            route = Routes.Offer.route
+        ),
+        NavigationItem(
+            "Necesidad",
+            Icons.Filled.Help,              // Ícono para necesidades
+            Icons.Outlined.Help,
+            route = Routes.Need.route
+        ),
+        NavigationItem(
+            "Historial",
+            Icons.Filled.History,
+            Icons.Outlined.History,
+            route = Routes.TradeHistory.route
+        ),
+        NavigationItem(
+            "Notificaciones",
+            Icons.Filled.Notifications,
+            Icons.Outlined.Notifications,
+            route = Routes.Notifications.route
+        ),
+        NavigationItem(
+            "Reportar Usuario",
+            Icons.Filled.Report,
+            Icons.Outlined.Report,
+            route = Routes.ReportUser.route
+        ),
+        NavigationItem(
+            "Propuestas Recibidas",
+            Icons.Filled.SwapHoriz,
+            Icons.Outlined.SwapHoriz,
+            route = Routes.ProposalsReceived.route
+        ),
+        NavigationItem(
+            "Cerrar Sesión",
+            Icons.Filled.Logout,
+            Icons.Outlined.Logout,
+            route = Routes.Logout.route
+        )
     )
 
     ModalNavigationDrawer(
@@ -71,8 +120,8 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
                                 )
                             },
                             badge = {
-                                item.badgeCount?.let { 
-                                    Text(text = it.toString()) 
+                                item.badgeCount?.let {
+                                    Text(text = it.toString())
                                 }
                             },
                             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
@@ -82,24 +131,33 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
             }
         },
         drawerState = drawerState
-    ) { 
+    ) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text(text = "AppTrueQ") },
                     navigationIcon = {
-                        IconButton(onClick = { 
-                            scope.launch {
-                                drawerState.open()
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    drawerState.open()
+                                }
                             }
-                        }) {
-                            Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu"
+                            )
                         }
                     }
                 )
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
                 content()
             }
         }

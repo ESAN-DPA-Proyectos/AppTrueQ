@@ -15,8 +15,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.Publication
-// QA: Se importa la implementación concreta desde su ubicación centralizada.
 import edu.esandpa202502.apptrueq.repository.explore.ExploreRepository
+
+// QA: Se importa la implementación concreta desde su ubicación centralizada.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
