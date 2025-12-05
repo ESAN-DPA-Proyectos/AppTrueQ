@@ -7,7 +7,6 @@ import edu.esandpa202502.apptrueq.model.Trade
 import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,16 +34,12 @@ class TradeHistoryViewModel : ViewModel() {
     private val _statusFilter = MutableStateFlow("Todos")
     val statusFilter = _statusFilter.asStateFlow()
 
-    // TODO: Se podría añadir un StateFlow para el filtro de fecha de la misma manera.
-
     init {
         loadTradeHistory()
 
-        // Lógica reactiva para aplicar filtros.
-        // Cada vez que el filtro de estado cambie, se recalculará la lista.
         viewModelScope.launch {
             _statusFilter.collect { status ->
-                val filteredList = if (status == "Todos") {
+                val filteredList = if (status.equals("Todos", ignoreCase = true)) {
                     allTrades
                 } else {
                     allTrades.filter { it.status.equals(status, ignoreCase = true) }
@@ -62,7 +57,8 @@ class TradeHistoryViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                allTrades = tradeRepository.getTradeHistoryForUser(userId)
+                // SOLUCIÓN: Se llama al método con el nombre correcto `getTradeHistory`.
+                allTrades = tradeRepository.getTradeHistory(userId)
                 // Al cargar, aplicamos el filtro que esté activo en ese momento.
                 onStatusFilterChanged(_statusFilter.value)
             } catch (e: Exception) {

@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.model.Trade
-import edu.esandpa202502.apptrueq.model.TradeStatus
+// Se elimina el import de TradeStatus ya que no existe y no se usa en este archivo.
 import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
 import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
 import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
@@ -60,8 +60,7 @@ class ProposalsReceivedViewModel : ViewModel() {
                 // 1. Actualiza el estado de la propuesta
                 proposalRepository.updateProposalStatus(proposal.id, "ACEPTADA")
 
-                // 2. CORRECCIÓN: Llama al método correcto del repositorio (`createTradeFromProposal`)
-                // que se encarga de crear el objeto Trade internamente.
+                // 2. Llama al método correcto del repositorio que se encarga de crear el objeto Trade internamente.
                 tradeRepository.createTradeFromProposal(
                     proposal = proposal,
                     receiverName = auth.currentUser?.displayName ?: "Usuario"
