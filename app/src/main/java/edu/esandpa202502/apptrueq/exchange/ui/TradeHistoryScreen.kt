@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.esandpa202502.apptrueq.model.Trade
+// SOLUCIÓN: Se importa el ViewModel único y consolidado que creamos.
+import edu.esandpa202502.apptrueq.proposal.viewmodel.ProposalsHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -23,12 +25,14 @@ import java.util.TimeZone
 @Composable
 fun TradeHistoryScreen(
     navController: NavController,
-    viewModel: TradeHistoryViewModel = viewModel()
+    // SOLUCIÓN: Se utiliza el ViewModel correcto y definitivo.
+    viewModel: ProposalsHistoryViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedStatus by viewModel.statusFilter.collectAsState()
     
-    val statusOptions = listOf("Todos", "aceptado", "rechazado", "cancelado")
+    // Se incluyen todos los posibles estados para el filtro.
+    val statusOptions = listOf("Todos", "Aceptado", "Rechazado", "Cancelado", "Propuesto", "Completado")
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Historial de Trueques") }) }
@@ -80,14 +84,13 @@ fun TradeHistoryScreen(
 fun TradeHistoryCard(trade: Trade) {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
     sdf.timeZone = TimeZone.getTimeZone("America/Lima")
-    // CORRECCIÓN: El campo `createdAt` en el modelo `Trade` ya es un Date, por lo que la llamada a .toDate() era incorrecta.
     val formattedDate = trade.createdAt?.let { sdf.format(it) } ?: "Fecha no disponible"
 
     Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Publicación ID: ${trade.publicationId}", fontWeight = FontWeight.Bold)
-            Text("Ofertante ID: ${trade.offerentId}")
-            Text("Receptor ID: ${trade.receiverId}")
+            // MEJORA: Se usan los campos enriquecidos del modelo para una UI más clara.
+            Text("Propuesta para: ${trade.publicationTitle}", fontWeight = FontWeight.Bold)
+            Text("De: ${trade.offerentName} a ${trade.receiverName}")
             Divider()
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Estado: ", fontWeight = FontWeight.SemiBold)

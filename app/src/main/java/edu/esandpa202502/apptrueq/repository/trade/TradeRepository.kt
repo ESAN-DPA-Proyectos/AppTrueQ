@@ -26,10 +26,9 @@ class TradeRepository {
 
     /**
      * HU-09: Obtiene el historial de trueques para un usuario específico.
-     * Un usuario puede ser tanto el que ofrece (`offerentId`) como el que recibe (`receiverId`).
-     * Por eso, necesitamos hacer dos consultas y combinar los resultados.
+     * SOLUCIÓN: Se renombra el método a `getTradeHistory` para que coincida con la llamada desde el ViewModel.
      */
-    suspend fun getTradeHistoryForUser(userId: String): List<Trade> {
+    suspend fun getTradeHistory(userId: String): List<Trade> {
         try {
             // Consulta 1: Trueques donde el usuario es el OFERTANTE.
             val offeredTradesQuery = tradesCollection.whereEqualTo("offerentId", userId).get().await()
