@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import edu.esandpa202502.apptrueq.model.Need
+import edu.esandpa202502.apptrueq.need.viewmodel.NeedState
 import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,6 +19,29 @@ fun NeedFormScreen(
 ) {
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val state by vm.needState.collectAsState()
+
+    // Reaccionar a cambios de estado del ViewModel
+    LaunchedEffect(state) {
+        when (state) {
+            is NeedState.Success -> {
+                // Limpiar el formulario y notificar éxito
+                description = ""
+                category = ""
+                errorMessage = null
+                vm.resetState()
+                onSuccess()
+            }
+
+            is NeedState.Error -> {
+                errorMessage = (state as NeedState.Error).message
+            }
+
+            else -> Unit
+        }
+    }
 
     val isValid = description.length >= 5
 
@@ -29,15 +52,20 @@ fun NeedFormScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("¿Qué necesitas?*") },
+            label = { Text("¿Qué necesitas? *") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
         )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
                 text = "${description.length}/200 caracteres",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -50,9 +78,9 @@ fun NeedFormScreen(
             )
         }
 
-
         Spacer(Modifier.height(12.dp))
 
+        // Categorías opcionales
         val categories = listOf("Hogar", "Libros", "Servicios", "Tecnología")
         var expanded by remember { mutableStateOf(false) }
 
@@ -61,43 +89,67 @@ fun NeedFormScreen(
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                value = category,
+                value = if (category.isBlank()) "Sin categoría" else category,
                 onValueChange = {},
                 label = { Text("Categoría (Opcional)") },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth()
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
             )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
                 categories.forEach { cat ->
-                    DropdownMenuItem(text = { Text(cat) }, onClick = {
-                        category = cat
-                        expanded = false
-                    })
+                    DropdownMenuItem(
+                        text = { Text(cat) },
+                        onClick = {
+                            category = cat
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
+
+        // Mensaje de error (si lo hay)
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+        // Indicador de carga
+        if (state is NeedState.Loading) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+        }
 
         Button(
             onClick = {
-                val newNeed = Need(
-                    text = description,
-                    category = category,
-                    status = "ACTIVE",
-                    // NOTA: El ownerId debe ser reemplazado por el ID del usuario autenticado
-                    ownerId = ""
+                vm.publishNeed(
+                    needText = description,
+                    category = if (category.isBlank()) null else category
                 )
-                vm.addNeed(newNeed)
-                description = ""
-                category = ""
-                onSuccess()
             },
-            enabled = isValid,
-            modifier = Modifier.fillMaxWidth().height(48.dp)
+            enabled = isValid && state !is NeedState.Loading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
         ) {
-            Text(text = "Publicar Necesidad")
+            Text("Publicar necesidad")
         }
     }
 }

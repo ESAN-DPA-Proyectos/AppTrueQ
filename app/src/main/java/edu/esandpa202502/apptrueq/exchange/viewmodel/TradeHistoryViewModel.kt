@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.Trade
 import edu.esandpa202502.apptrueq.model.TradeStatus
-import edu.esandpa202502.apptrueq.repository.trade.TradeRepository
+import edu.esandpa202502.apptrueq.repository.exchange.TradeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

@@ -3,203 +3,171 @@ package edu.esandpa202502.apptrueq.exchange.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.esandpa202502.apptrueq.exchange.viewmodel.ProposalExchangeViewModel
 import edu.esandpa202502.apptrueq.model.Proposal
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposalsReceivedScreen(
-    navController: NavController,
-    viewModel: ProposalExchangeViewModel = viewModel()
+    vm: ProposalExchangeViewModel = viewModel()
 ) {
-    val uiState = viewModel.uiState.collectAsState()
+    val state by vm.uiState.collectAsState()
 
-    val proposalToAction = remember { mutableStateOf<Proposal?>(null) }
-    val actionType = remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Propuestas Recibidas") })
+    val filteredProposals: List<Proposal> = remember(state.proposals, searchQuery) {
+        if (searchQuery.isBlank()) {
+            state.proposals
+        } else {
+            state.proposals.filter { proposal ->
+                proposal.publicationTitle.contains(searchQuery, ignoreCase = true) ||
+                        proposal.proposerName.contains(searchQuery, ignoreCase = true) ||
+                        proposal.proposalText.contains(searchQuery, ignoreCase = true) ||
+                        (proposal.offeredItemTitle ?: "").contains(searchQuery, ignoreCase = true)
+            }
         }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            when {
-                uiState.value.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+    }
 
-                uiState.value.error != null -> {
-                    Text(
-                        "Error: ${uiState.value.error}",
-                        modifier = Modifier.align(Alignment.Center)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+
+        Text(
+            text = "Propuestas recibidas",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Buscar propuestas…") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (filteredProposals.isEmpty()) {
+            Text(
+                text = "No tienes propuestas pendientes.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(filteredProposals, key = { it.id }) { proposal ->
+                    ProposalCard(
+                        proposal = proposal,
+                        onAccept = { vm.acceptProposal(proposal) },
+                        onReject = { vm.rejectProposal(proposal) }
                     )
-                }
-
-                uiState.value.proposals.isEmpty() -> {
-                    Text(
-                        "No tienes propuestas pendientes.",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(uiState.value.proposals, key = { it.id }) { proposal ->
-                            ProposalCard(
-                                proposal = proposal,
-                                onAcceptClick = {
-                                    proposalToAction.value = proposal
-                                    actionType.value = "aceptar"
-                                },
-                                onRejectClick = {
-                                    proposalToAction.value = proposal
-                                    actionType.value = "rechazar"
-                                }
-                            )
-                        }
-                    }
                 }
             }
         }
 
-        if (proposalToAction.value != null && actionType.value != null) {
-            ConfirmationDialog(
-                actionType = actionType.value!!,
-                onConfirm = {
-                    if (actionType.value == "aceptar") {
-                        viewModel.acceptProposal(proposalToAction.value!!)
-                    } else {
-                        viewModel.rejectProposal(proposalToAction.value!!)
-                    }
-                    proposalToAction.value = null
-                    actionType.value = null
-                },
-                onDismiss = {
-                    proposalToAction.value = null
-                    actionType.value = null
-                }
+        state.error?.let { errorMsg ->
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = errorMsg,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProposalCard(
+private fun ProposalCard(
     proposal: Proposal,
-    onAcceptClick: () -> Unit,
-    onRejectClick: () -> Unit
+    onAccept: () -> Unit,
+    onReject: () -> Unit
 ) {
     Card(
-        elevation = CardDefaults.cardElevation(4.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+
             Text(
-                text = "Propuesta para: ${proposal.publicationTitle}",
+                text = proposal.publicationTitle,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
+
             Spacer(Modifier.height(4.dp))
+
             Text(
-                "De: ${proposal.proposerName}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                proposal.proposalText,
+                text = "Proponente: ${proposal.proposerName}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            if (proposal.offeredPublicationId != null) {
+            if (proposal.proposalText.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    "Ofrece a cambio: [ID: ${proposal.offeredPublicationId}]",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Mensaje: ${proposal.proposalText}",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            if (!proposal.offeredPublicationId.isNullOrBlank()
+                || !proposal.offeredItemTitle.isNullOrBlank()
+            ) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Ofrece a cambio:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                proposal.offeredItemTitle?.let {
+                    Text(
+                        text = "- $it",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                if (!proposal.offeredPublicationId.isNullOrBlank()) {
+                    Text(
+                        text = "- Publicación existente (ID: ${proposal.offeredPublicationId})",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
             Row(
-                Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                Button(
-                    onClick = onAcceptClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Text("Aceptar")
+                TextButton(onClick = onReject) {
+                    Text("RECHAZAR")
                 }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = onRejectClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Rechazar")
+                Spacer(Modifier.width(4.dp))
+                Button(onClick = onAccept) {
+                    Text("ACEPTAR")
                 }
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ConfirmationDialog(
-    actionType: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Confirmar Acción") },
-        text = {
-            Text(
-                "¿Estás seguro de que quieres $actionType esta propuesta? " +
-                        "Esta acción no se puede deshacer."
-            )
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Confirmar")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
 }

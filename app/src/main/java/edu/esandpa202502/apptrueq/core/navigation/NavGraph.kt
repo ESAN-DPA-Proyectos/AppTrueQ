@@ -80,8 +80,9 @@ fun NavGraph(navController: NavHostController) {
             TradeHistoryScreen(navController = navController)
         }
 
+        // 🔵 ProposalsReceivedScreen YA NO RECIBE navController, solo el ViewModel interno
         composable(Routes.ProposalsReceived.route) {
-            ProposalsReceivedScreen(navController = navController)
+            ProposalsReceivedScreen()
         }
 
         composable(
@@ -89,7 +90,9 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
+            // 🔵 TradeDetailScreen SÍ recibe navController como primer parámetro
             TradeDetailScreen(
+                navController = navController,
                 tradeId = tradeId,
                 onNavigateBack = { navController.popBackStack() }
             )
@@ -121,27 +124,10 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // HU-10: Reporte de usuario, ruta con argumento obligatorio {userId}
-//        composable(
-//            route = "reportUsr_user/{userId}",
-//            arguments = listOf(
-//                navArgument("userId") { type = NavType.StringType }
-//            )
-//        ) { backStackEntry ->
-//            val reportedUserId = backStackEntry.arguments?.getString("userId") ?: ""
-//            ReportUserScreen(
-//                navController = navController,
-//                reportedUserId = reportedUserId
-//            )
-//        }
-
-
-
         // HU-10: Reporte de usuario desde el menú lateral (sin argumento obligatorio por ahora)
         composable(
             route = Routes.ReportUser.route
         ) {
-            // Por ahora no se pasa un userId específico desde el Drawer
             ReportUserScreen(
                 navController = navController,
                 reportedUserId = ""

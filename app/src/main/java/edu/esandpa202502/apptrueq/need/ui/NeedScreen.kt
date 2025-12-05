@@ -10,7 +10,9 @@ import edu.esandpa202502.apptrueq.need.viewmodel.NeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NeedScreen(vm: NeedViewModel = viewModel()) {
+fun NeedScreen(
+    vm: NeedViewModel = viewModel()
+) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Publicar Necesidad", "Mis Necesidades")
 
@@ -19,7 +21,7 @@ fun NeedScreen(vm: NeedViewModel = viewModel()) {
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text("Publicación Exitosa") },
+            title = { Text("Publicación exitosa") },
             text = { Text("Tu necesidad ha sido registrada correctamente.") },
             confirmButton = {
                 Button(
@@ -43,11 +45,14 @@ fun NeedScreen(vm: NeedViewModel = viewModel()) {
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { selectedTabIndex = index },
-                    text = { 
+                    text = {
                         Text(
                             text = title,
-                            color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        ) 
+                            color = if (selectedTabIndex == index)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 )
             }

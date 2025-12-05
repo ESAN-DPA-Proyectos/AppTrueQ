@@ -1,5 +1,6 @@
 package edu.esandpa202502.apptrueq.repository.reportUsr
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.Report
@@ -14,9 +15,29 @@ class ReportRepository {
     private val reportsCollection = db.collection("reports")
 
     /**
-     * HU-10: Guarda un nuevo reporte en la base de datos.
-     *
-     * @param report El objeto Report a guardar.
+     * HU-10: Guarda un nuevo reporte en la base de datos
+     * a partir de campos sueltos (más fácil de usar desde el ViewModel).
+     */
+    suspend fun submitReport(
+        reportedEmail: String,
+        reason: String,
+        description: String,
+        reporterId: String
+    ) {
+        val data = hashMapOf(
+            "reportedEmail" to reportedEmail,
+            "reason" to reason,
+            "description" to description,
+            "reporterId" to reporterId,
+            "createdAt" to Timestamp.now()
+        )
+
+        reportsCollection.add(data).await()
+    }
+
+    /**
+     * Versión que recibe un objeto Report completo.
+     * (La mantengo por si la quieres usar en otro contexto.)
      */
     suspend fun submitReport(report: Report) {
         try {

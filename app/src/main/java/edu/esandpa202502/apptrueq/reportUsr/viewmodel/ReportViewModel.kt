@@ -2,50 +2,55 @@ package edu.esandpa202502.apptrueq.reportUsr.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import edu.esandpa202502.apptrueq.repository.ReportRepository
+import edu.esandpa202502.apptrueq.repository.reportUsr.ReportRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class ReportUiState(
-    val isLoading: Boolean = false,
-    val isSuccess: Boolean = false,
-    val error: String? = null
-)
+// Estado simple para HU-10
+sealed class ReportState {
+    object Idle : ReportState()
+    object Loading : ReportState()
+    object Success : ReportState()
+    data class Error(val message: String) : ReportState()
+}
 
-class ReportViewModel : ViewModel() {
+class ReportViewModel(
+    private val reportRepository: ReportRepository = ReportRepository()
+) : ViewModel() {
 
-    private val repository = ReportRepository()
+    private val _reportState = MutableStateFlow<ReportState>(ReportState.Idle)
+    val reportState: StateFlow<ReportState> = _reportState
 
-    private val _uiState = MutableStateFlow(ReportUiState())
-    val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
-
-    fun submitReport(reportedEmail: String, reason: String, description: String) {
-        // Se utiliza el método estándar para obtener la instancia de FirebaseAuth
-        val reporterId = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            _uiState.value = ReportUiState(error = "No se pudo identificar al usuario actual.")
-            return
-        }
-
+    /**
+     * Envía un reporte usando los campos que llenas en el formulario.
+     * (No hay más `isSuccess`, ni `exceptionOrNull`, ni parámetros raros.)
+     */
+    fun submitReport(
+        reportedEmail: String,
+        reason: String,
+        description: String,
+        reporterId: String
+    ) {
         viewModelScope.launch {
-            _uiState.value = ReportUiState(isLoading = true)
-            val result = repository.submitReport(
-                reportedEmail = reportedEmail,
-                reason = reason,
-                description = description,
-                reporterId = reporterId
-            )
-            if (result.isSuccess) {
-                _uiState.value = ReportUiState(isSuccess = true)
-            } else {
-                _uiState.value = ReportUiState(error = result.exceptionOrNull()?.message ?: "Error desconocido")
+            _reportState.value = ReportState.Loading
+            try {
+                reportRepository.submitReport(
+                    reportedEmail = reportedEmail,
+                    reason = reason,
+                    description = description,
+                    reporterId = reporterId
+                )
+                _reportState.value = ReportState.Success
+            } catch (e: Exception) {
+                _reportState.value = ReportState.Error(
+                    e.message ?: "Error al enviar el reporte"
+                )
             }
         }
     }
 
     fun resetState() {
-        _uiState.value = ReportUiState()
+        _reportState.value = ReportState.Idle
     }
 }
