@@ -88,7 +88,10 @@ fun NotificationsScreen(
                                 NotificationCard(
                                     notification = notification,
                                     onClick = {
-                                        notificationViewModel.markAsRead(notification.id)
+                                        // CORRECCIÓN: Se llama al método correcto `markNotificationAsRead`
+                                        // y se pasa el objeto `notification` completo.
+                                        notificationViewModel.markNotificationAsRead(notification)
+
                                         // Deep linking
                                         val route = when (notification.type) {
                                             "new_proposal", "proposal_accepted", "proposal_rejected" -> Routes.ProposalsReceived.route

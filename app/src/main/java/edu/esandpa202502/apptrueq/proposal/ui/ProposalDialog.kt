@@ -15,7 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color // <-- IMPORT AÑADIDO
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -110,7 +110,8 @@ fun ProposalDialog(viewModel: PublicationDetailViewModel, onDismiss: () -> Unit)
                         viewModel.submitProposal(proposalMessage, offeredPublicationId = it)
                     }
                 } else {
-                    // viewModel.submitProposalWithNewOffer(proposalMessage, newOfferTitle, newOfferDescription, newOfferImageUri)
+                    // SOLUCIÓN: Se descomenta la línea para activar la funcionalidad.
+                    viewModel.submitProposalWithNewOffer(proposalMessage, newOfferTitle, newOfferDescription, newOfferImageUri)
                 }
                 onDismiss()
             }) {
