@@ -1,16 +1,16 @@
 package edu.esandpa202502.apptrueq.proposal.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import edu.esandpa202502.apptrueq.model.NotificationItem
+import com.google.firebase.storage.FirebaseStorage
 import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.model.Publication
-import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
 import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
 import edu.esandpa202502.apptrueq.repository.publication.PublicationRepository
+import edu.esandpa202502.apptrueq.repository.user.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,21 +18,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-// HU-06: Se añade un campo para los errores de validación en el diálogo.
 data class PublicationDetailUiState(
     val isLoading: Boolean = true,
     val publication: Publication? = null,
     val userPublications: List<Publication> = emptyList(),
     val error: String? = null,
-    val proposalError: String? = null, // Para mostrar errores específicos del diálogo
+    val proposalError: String? = null,
     val proposalSent: Boolean = false
 )
 
 class PublicationDetailViewModel(private val publicationId: String) : ViewModel() {
 
     private val publicationRepository = PublicationRepository()
-    private val proposalRepository = ProposalRepository() // Se añade el repositorio de propuestas
-    private val notificationRepository = NotificationRepository()
+    private val proposalRepository = ProposalRepository()
+    private val userRepository = UserRepository()
+    private val storage = FirebaseStorage.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
     private val _uiState = MutableStateFlow(PublicationDetailUiState())
@@ -71,7 +71,6 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
         val publication = _uiState.value.publication ?: return
         val currentUser = auth.currentUser ?: return
 
-        // HU-06: Validación de la longitud del texto de la propuesta.
         if (proposalText.length !in 10..250) {
             _uiState.update { it.copy(proposalError = "El mensaje debe tener entre 10 y 250 caracteres.") }
             return
@@ -80,35 +79,27 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, proposalError = null) }
             try {
-                // HU-06: Validación anti-spam. Comprueba si ya existe una propuesta.
                 val hasExisting = proposalRepository.hasExistingProposal(currentUser.uid, publication.id)
                 if (hasExisting) {
                     _uiState.update { it.copy(isLoading = false, proposalError = "Ya has enviado una propuesta para esta publicación.") }
                     return@launch
                 }
 
-                // El estado por defecto del modelo `Proposal` ya es "PENDIENTE", cumpliendo el requisito.
+                val proposer = userRepository.getUserById(currentUser.uid)
+                val proposerName = proposer?.name ?: currentUser.displayName ?: "Usuario Anónimo"
+
                 val proposal = Proposal(
                     publicationId = publication.id,
                     publicationOwnerId = publication.userId,
                     publicationTitle = publication.title,
                     proposerId = currentUser.uid,
-                    proposerName = currentUser.displayName ?: "Usuario Anónimo",
+                    proposerName = proposerName,
                     proposalText = proposalText,
                     offeredPublicationId = offeredPublicationId
                 )
 
-                val db = FirebaseFirestore.getInstance()
-                val proposalRef = db.collection("proposals").add(proposal).await()
-
-                val notification = NotificationItem(
-                    title = "¡Has recibido una nueva propuesta!",
-                    message = "${currentUser.displayName ?: "Alguien"} ha hecho una propuesta para tu publicación: '${publication.title}'.",
-                    userId = publication.userId,
-                    type = "new_proposal",
-                    referenceId = proposalRef.id
-                )
-                notificationRepository.addNotification(notification)
+                // SOLUCIÓN: Se llama al método del repositorio que se encarga de todo.
+                proposalRepository.createProposalAndNotify(proposal)
 
                 _uiState.update { it.copy(isLoading = false, proposalSent = true) }
 
@@ -118,7 +109,61 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
         }
     }
 
-    // Función para limpiar el error del diálogo cuando se cierra.
+    fun submitProposalWithNewOffer(
+        proposalText: String,
+        offerTitle: String,
+        offerDescription: String,
+        offerImageUri: Uri?
+    ) {
+        val publication = _uiState.value.publication ?: return
+        val currentUser = auth.currentUser ?: return
+
+        if (offerTitle.isBlank()) {
+            _uiState.update { it.copy(proposalError = "El título de tu oferta no puede estar vacío.") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, proposalError = null) }
+            try {
+                val hasExisting = proposalRepository.hasExistingProposal(currentUser.uid, publication.id)
+                if (hasExisting) {
+                    _uiState.update { it.copy(isLoading = false, proposalError = "Ya has enviado una propuesta para esta publicación.") }
+                    return@launch
+                }
+
+                var imageUrl: String? = null
+                if (offerImageUri != null) {
+                    val imageRef = storage.reference.child("proposal_offers/${System.currentTimeMillis()}_${offerImageUri.lastPathSegment}")
+                    imageUrl = imageRef.putFile(offerImageUri).await().storage.downloadUrl.await().toString()
+                }
+
+                val proposer = userRepository.getUserById(currentUser.uid)
+                val proposerName = proposer?.name ?: currentUser.displayName ?: "Usuario Anónimo"
+
+                val proposal = Proposal(
+                    publicationId = publication.id,
+                    publicationOwnerId = publication.userId,
+                    publicationTitle = publication.title,
+                    proposerId = currentUser.uid,
+                    proposerName = proposerName,
+                    proposalText = proposalText,
+                    offeredItemTitle = offerTitle,
+                    offeredItemDescription = offerDescription,
+                    offeredItemImageUrl = imageUrl
+                )
+
+                // SOLUCIÓN: Se llama al método del repositorio que se encarga de todo.
+                proposalRepository.createProposalAndNotify(proposal)
+
+                _uiState.update { it.copy(isLoading = false, proposalSent = true) }
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = "Error al enviar la propuesta: ${e.message}") }
+            }
+        }
+    }
+
     fun clearProposalError() {
         _uiState.update { it.copy(proposalError = null) }
     }

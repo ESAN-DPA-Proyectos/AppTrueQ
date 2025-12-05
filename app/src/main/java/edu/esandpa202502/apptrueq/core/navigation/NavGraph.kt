@@ -15,7 +15,7 @@ import edu.esandpa202502.apptrueq.auth.ui.Logout
 import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
 import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
 import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.exchange.ui.ProposalsReceivedScreen
+import edu.esandpa202502.apptrueq.proposal.ui.ProposalsReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
