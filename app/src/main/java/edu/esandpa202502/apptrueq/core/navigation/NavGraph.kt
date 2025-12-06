@@ -18,10 +18,13 @@ import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
 import edu.esandpa202502.apptrueq.proposal.ui.ProposalsReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
+import edu.esandpa202502.apptrueq.moderation.ui.DenunciaDetailScreen
+import edu.esandpa202502.apptrueq.moderation.ui.DenunciasScreen
+import edu.esandpa202502.apptrueq.moderation.ui.ModerationScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
-import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen // Import añadido
+import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
@@ -66,14 +69,16 @@ fun NavGraph(navController: NavHostController) {
             NeedScreen()
         }
 
-        // --- BLOQUE CORREGIDO CUIDADOSAMENTE ---
+        // HU-03: QR / Mis Publicaciones
         composable(Routes.PublicationQR.route) {
             MyPublicationsScreen()
         }
 
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("id") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val publicationId = backStackEntry.arguments?.getString("id") ?: ""
             PublicationDetailScreen(
@@ -92,7 +97,9 @@ fun NavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.TradeDetail.route,
-            arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("tradeId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
             TradeDetailScreen(
@@ -109,14 +116,8 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = Routes.NotificationDetail.route,
             arguments = listOf(
-                navArgument("notificationId") {
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument("referenceId") {
-                    type = NavType.StringType
-                    nullable = true
-                }
+                navArgument("notificationId") { type = NavType.StringType; nullable = true },
+                navArgument("referenceId") { type = NavType.StringType; nullable = true }
             )
         ) { backStackEntry ->
             val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
@@ -128,14 +129,43 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        // Reportar usuario (HU-10) con los 3 argumentos
         composable(
-            route = Routes.ReportUser.route
-        ) {
+            route = Routes.ReportUser.route,
+            arguments = listOf(
+                navArgument("publicationId") { type = NavType.StringType },
+                navArgument("reportedUserId") { type = NavType.StringType },
+                navArgument("reportedUserName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
+            val reportedUserId = backStackEntry.arguments?.getString("reportedUserId") ?: ""
+            val reportedUserName = backStackEntry.arguments?.getString("reportedUserName") ?: ""
             ReportUserScreen(
                 navController = navController,
-                reportedUserId = ""
+                publicationId = publicationId,
+                reportedUserId = reportedUserId,
+                reportedUserName = reportedUserName
             )
         }
 
+        // Panel de moderación (HU-11)
+        composable(Routes.ModerationPanel.route) {
+            ModerationScreen(navController = navController)
+        }
+
+        composable(Routes.Denuncias.route) {
+            DenunciasScreen(navController = navController)
+        }
+
+        composable(
+            route = Routes.DenunciaDetail.route,
+            arguments = listOf(
+                navArgument("reportId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
+            DenunciaDetailScreen(reportId = reportId)
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ServerTimestamp
  */
 data class Report(
     val id: String = "",
+    val publicationId: String = "", // ID de la publicación denunciada
     val reportedUserId: String = "",
     val reportedUserName: String = "",
     val reportingUserId: String = "",

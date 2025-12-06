@@ -23,11 +23,12 @@ class ReportViewModel(
     val reportState: StateFlow<ReportState> = _reportState
 
     /**
-     * Envía un reporte usando los campos que llenas en el formulario.
-     * (No hay más `isSuccess`, ni `exceptionOrNull`, ni parámetros raros.)
+     * Envía un reporte usando los campos correctos del modelo.
      */
     fun submitReport(
-        reportedEmail: String,
+        publicationId: String,
+        reportedUserId: String,
+        reportedUserName: String,
         reason: String,
         description: String,
         reporterId: String
@@ -36,7 +37,9 @@ class ReportViewModel(
             _reportState.value = ReportState.Loading
             try {
                 reportRepository.submitReport(
-                    reportedEmail = reportedEmail,
+                    publicationId = publicationId,
+                    reportedUserId = reportedUserId,
+                    reportedUserName = reportedUserName,
                     reason = reason,
                     description = description,
                     reporterId = reporterId

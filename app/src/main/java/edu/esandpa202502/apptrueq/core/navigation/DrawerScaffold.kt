@@ -9,8 +9,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -31,32 +46,93 @@ data class NavigationItem(
 @Composable
 fun DrawerScaffold(
     navController: NavController,
-    sharedViewModel: SharedViewModel = viewModel(), // Se obtiene instancia del ViewModel compartido
+    sharedViewModel: SharedViewModel = viewModel(),
     content: @Composable () -> Unit
 ) {
-
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = androidx.compose.material3.rememberDrawerState(
+        initialValue = androidx.compose.material3.DrawerValue.Closed
+    )
     val scope = rememberCoroutineScope()
 
-    // Se observa el contador de notificaciones no leídas
+    // Contador de notificaciones no leídas (versión main)
     val unreadCount by sharedViewModel.unreadNotificationCount.collectAsState()
 
-
-    // La lista de items ahora se calcula dinámicamente
+    // Lista de items combinando HU-11 + main
     val items = remember(unreadCount) {
         listOf(
-            NavigationItem("Dashboard", Icons.Filled.Home, Icons.Outlined.Home, route = Routes.Dashboard.route),
-            NavigationItem("Explorar", Icons.Filled.Search, Icons.Outlined.Search, route = Routes.Explore.route),
-            NavigationItem("Login", Icons.Filled.Person, Icons.Outlined.Person, route = Routes.Login.route),
-            NavigationItem("Oferta", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Offer.route),
-            NavigationItem("Necesidad", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Need.route),
-            NavigationItem("QR", Icons.Filled.QrCode, Icons.Outlined.QrCode, route = Routes.PublicationQR.route),
-            NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
-            // SOLUCIÓN: Se pasa el contador de notificaciones al item correspondiente.
-            NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, badgeCount = unreadCount, route = Routes.Notifications.route),
-            NavigationItem("Reportar Usuario", Icons.Filled.Report, Icons.Outlined.Report, route = Routes.ReportUser.route),
-            NavigationItem("Propuestas Recibidas", Icons.Filled.SwapHoriz, Icons.Outlined.SwapHoriz, route = Routes.ProposalsReceived.route),
-            NavigationItem("Cerrar Sesión", Icons.Filled.Logout, Icons.Outlined.Logout, route = Routes.Logout.route)
+            NavigationItem(
+                "Dashboard",
+                Icons.Filled.Home,
+                Icons.Outlined.Home,
+                route = Routes.Dashboard.route
+            ),
+            NavigationItem(
+                "Explorar",
+                Icons.Filled.Search,
+                Icons.Outlined.Search,
+                route = Routes.Explore.route
+            ),
+            NavigationItem(
+                "Login",
+                Icons.Filled.Person,
+                Icons.Outlined.Person,
+                route = Routes.Login.route
+            ),
+            NavigationItem(
+                "Oferta",
+                Icons.Filled.ShoppingCart,        // icono de HU-11
+                Icons.Outlined.ShoppingCart,
+                route = Routes.Offer.route
+            ),
+            NavigationItem(
+                "Necesidad",
+                Icons.Filled.Help,                // icono de HU-11
+                Icons.Outlined.Help,
+                route = Routes.Need.route
+            ),
+            NavigationItem(
+                "QR",
+                Icons.Filled.QrCode,
+                Icons.Outlined.QrCode,
+                route = Routes.PublicationQR.route   // asumiendo que ya tienes esta ruta
+            ),
+            NavigationItem(
+                "Historial",
+                Icons.Filled.History,
+                Icons.Outlined.History,
+                route = Routes.TradeHistory.route
+            ),
+            NavigationItem(
+                "Notificaciones",
+                Icons.Filled.Notifications,
+                Icons.Outlined.Notifications,
+                badgeCount = unreadCount,           // badge dinámico
+                route = Routes.Notifications.route
+            ),
+            NavigationItem(
+                "Reportar Usuario",
+                Icons.Filled.Report,
+                Icons.Outlined.Report,
+                route = Routes.ReportUser.route     // OJO: esta ruta requiere args, ver nota abajo
+            ),
+            NavigationItem(
+                "Moderador",
+                Icons.Filled.AdminPanelSettings,
+                Icons.Outlined.AdminPanelSettings,
+                route = Routes.ModerationPanel.route
+            ),
+            NavigationItem(
+                "Propuestas Recibidas",
+                Icons.Filled.SwapHoriz,
+                Icons.Outlined.SwapHoriz,
+                route = Routes.ProposalsReceived.route
+            ),
+            NavigationItem(
+                "Cerrar Sesión",
+                Icons.Filled.Logout,
+                Icons.Outlined.Logout,
+                route = Routes.Logout.route
+            )
         )
     }
 
@@ -78,13 +154,15 @@ fun DrawerScaffold(
                                 }
                             },
                             icon = {
-                                // SOLUCIÓN: Se envuelve el ícono de Notificaciones en un BadgedBox.
+                                // Ítem de notificaciones con Badge (versión main)
                                 if (item.route == Routes.Notifications.route) {
-                                    BadgedBox(badge = {
-                                        if (item.badgeCount != null && item.badgeCount > 0) {
-                                            Badge { Text(text = item.badgeCount.toString()) }
+                                    BadgedBox(
+                                        badge = {
+                                            if (item.badgeCount != null && item.badgeCount > 0) {
+                                                Badge { Text(text = item.badgeCount.toString()) }
+                                            }
                                         }
-                                    }) {
+                                    ) {
                                         Icon(
                                             imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                                             contentDescription = item.title
@@ -97,7 +175,9 @@ fun DrawerScaffold(
                                     )
                                 }
                             },
-                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                            modifier = Modifier.padding(
+                                NavigationDrawerItemDefaults.ItemPadding
+                            )
                         )
                     }
                 }
@@ -111,24 +191,31 @@ fun DrawerScaffold(
                     title = { Text(text = "AppTrueQ") },
                     navigationIcon = {
                         IconButton(onClick = {
-                            scope.launch {
-                                drawerState.open()
-                            }
+                            scope.launch { drawerState.open() }
                         }) {
-                            // SOLUCIÓN: Se envuelve el ícono del menú en un BadgedBox.
-                            BadgedBox(badge = {
-                                if (unreadCount > 0) {
-                                    Badge() // Un punto rojo si hay notificaciones
+                            // Badge en el icono del menú si hay notificaciones (versión main)
+                            BadgedBox(
+                                badge = {
+                                    if (unreadCount > 0) {
+                                        Badge()
+                                    }
                                 }
-                            }) {
-                                Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu"
+                                )
                             }
                         }
                     }
                 )
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
                 content()
             }
         }
