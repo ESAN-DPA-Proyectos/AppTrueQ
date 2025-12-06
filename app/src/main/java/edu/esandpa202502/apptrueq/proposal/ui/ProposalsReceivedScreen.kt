@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.proposal.viewmodel.ProposalsReceivedViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,7 @@ fun ProposalsReceivedScreen(
                 proposal.proposerName.contains(searchQuery, ignoreCase = true) ||
                 proposal.proposalText.contains(searchQuery, ignoreCase = true) ||
                 (proposal.offeredItemTitle ?: "").contains(searchQuery, ignoreCase = true) ||
-                (state.offeredPublicationTitles[proposal.offeredPublicationId] ?: "").contains(searchQuery, ignoreCase = true)
+                (proposal.offeredPublicationTitle ?: "").contains(searchQuery, ignoreCase = true)
             }
         }
     }
@@ -102,7 +104,6 @@ fun ProposalsReceivedScreen(
                 items(displayedProposals, key = { it.id }) { proposal ->
                     ProposalCard(
                         proposal = proposal,
-                        offeredPublicationTitle = state.offeredPublicationTitles[proposal.offeredPublicationId],
                         onAccept = { vm.acceptProposal(proposal) },
                         onReject = { vm.rejectProposal(proposal) }
                     )
@@ -120,7 +121,6 @@ fun ProposalsReceivedScreen(
 @Composable
 private fun ProposalCard(
     proposal: Proposal,
-    offeredPublicationTitle: String?,
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -140,14 +140,36 @@ private fun ProposalCard(
                 Text("Mensaje: ${proposal.proposalText}", style = MaterialTheme.typography.bodySmall)
             }
 
-            if (!proposal.offeredPublicationId.isNullOrBlank() || !proposal.offeredItemTitle.isNullOrBlank()) {
+            if (proposal.offeredItemTitle != null || proposal.offeredPublicationId != null) {
                  Spacer(Modifier.height(8.dp))
                  Text("Ofrece a cambio:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                 proposal.offeredItemTitle?.let { Text("- $it", style = MaterialTheme.typography.bodySmall) }
+
+                 proposal.offeredItemTitle?.let { 
+                     Text("- $it", style = MaterialTheme.typography.bodySmall)
+                 }
+
+                 proposal.offeredPublicationTitle?.let { 
+                     Text("- $it", style = MaterialTheme.typography.bodySmall)
+                 }
+
+                 Spacer(Modifier.height(8.dp))
+
+                 proposal.offeredItemImageUrl?.takeIf { it.isNotBlank() }?.let {
+                     Text("Imagen de propuesta:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                     Text(it, style = MaterialTheme.typography.bodySmall)
+                     Spacer(Modifier.height(4.dp))
+                 }
+                 proposal.offeredPublicationImageUrl?.takeIf { it.isNotBlank() }?.let {
+                     Text("Imagen de publicación:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                     Text(it, style = MaterialTheme.typography.bodySmall)
+                     Spacer(Modifier.height(4.dp))
+                 }
                  
-                 if (!proposal.offeredPublicationId.isNullOrBlank()) {
-                     val title = offeredPublicationTitle ?: "Publicación (ID: ${proposal.offeredPublicationId})"
-                     Text("- $title", style = MaterialTheme.typography.bodySmall)
+                 proposal.createdAt?.let { timestamp ->
+                    val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
+                    val formattedDate = sdf.format(timestamp.toDate())
+                    Text("Fecha y hora en que se envió la propuesta:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    Text(formattedDate, style = MaterialTheme.typography.bodySmall)
                  }
             }
 

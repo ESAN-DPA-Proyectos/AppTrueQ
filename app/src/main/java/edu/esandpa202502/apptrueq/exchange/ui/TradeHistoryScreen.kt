@@ -11,11 +11,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import edu.esandpa202502.apptrueq.model.Trade
 import edu.esandpa202502.apptrueq.exchange.viewmodel.TradeHistoryViewModel
+import edu.esandpa202502.apptrueq.model.Proposal
 import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
+import java.util.*
 
 /**
  * Pantalla para HU-09: Historial de Trueques.
@@ -28,8 +27,7 @@ fun TradeHistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedStatus by viewModel.statusFilter.collectAsState()
-    
-    // SOLUCIÓN: Se corrige la lista de filtros disponibles.
+
     val statusOptions = listOf("Todos", "Aceptado", "Rechazado")
 
     Scaffold(
@@ -62,13 +60,13 @@ fun TradeHistoryScreen(
                     uiState.error != null -> {
                         Text("Error: ${uiState.error}", modifier = Modifier.align(Alignment.Center))
                     }
-                    uiState.trades.isEmpty() -> {
-                        Text("No se encontraron trueques con esos filtros.", modifier = Modifier.align(Alignment.Center))
+                    uiState.proposals.isEmpty() -> {
+                        Text("No se encontraron propuestas con esos filtros.", modifier = Modifier.align(Alignment.Center))
                     }
                     else -> {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            items(uiState.trades, key = { it.id }) { trade ->
-                                TradeHistoryCard(trade = trade)
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(uiState.proposals, key = { it.id }) { proposal ->
+                                ProposalHistoryCard(proposal = proposal)
                             }
                         }
                     }
@@ -79,22 +77,55 @@ fun TradeHistoryScreen(
 }
 
 @Composable
-fun TradeHistoryCard(trade: Trade) {
+fun ProposalHistoryCard(proposal: Proposal) {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
     sdf.timeZone = TimeZone.getTimeZone("America/Lima")
-    val formattedDate = trade.createdAt?.let { sdf.format(it) } ?: "Fecha no disponible"
+    val formattedDate = proposal.createdAt?.toDate()?.let { sdf.format(it) } ?: "Fecha no disponible"
 
-    Card(elevation = CardDefaults.cardElevation(4.dp), modifier = Modifier.fillMaxWidth()) {
+    Card(elevation = CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Propuesta para: ${trade.publicationTitle}", fontWeight = FontWeight.Bold)
-            Text("De: ${trade.offerentName} a ${trade.receiverName}")
-            Divider()
+            Text(proposal.publicationTitle, fontWeight = FontWeight.Bold)
+            Text("Proponente: ${proposal.proposerName}", style = MaterialTheme.typography.bodyMedium)
+
+            if (proposal.proposalText.isNotBlank()) {
+                Text("Mensaje: ${proposal.proposalText}", style = MaterialTheme.typography.bodySmall)
+            }
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Estado: ", fontWeight = FontWeight.SemiBold)
-                Text(trade.status.uppercase(), color = MaterialTheme.colorScheme.primary)
+                StatusBadge(status = proposal.status)
                 Spacer(modifier = Modifier.weight(1f))
                 Text(formattedDate, style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+}
+
+@Composable
+private fun StatusBadge(status: String) {
+    val backgroundColor = when (status.uppercase()) {
+        "ACEPTADA" -> MaterialTheme.colorScheme.primaryContainer
+        "RECHAZADA" -> MaterialTheme.colorScheme.errorContainer
+        "PENDIENTE" -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val contentColor = when (status.uppercase()) {
+        "ACEPTADA" -> MaterialTheme.colorScheme.onPrimaryContainer
+        "RECHAZADA" -> MaterialTheme.colorScheme.onErrorContainer
+        "PENDIENTE" -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Surface(
+        color = backgroundColor,
+        shape = MaterialTheme.shapes.small,
+    ) {
+        Text(
+            text = status.uppercase(),
+            color = contentColor,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }
