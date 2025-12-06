@@ -29,6 +29,7 @@ import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 import edu.esandpa202502.apptrueq.need.ui.NeedScreen
+import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -67,6 +68,9 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Routes.Need.route) {
             NeedScreen()
+        }
+        composable(Routes.PublicationQR.route) {
+            MyPublicationsScreen()
         }
 
         composable(
