@@ -1,6 +1,7 @@
 package edu.esandpa202502.apptrueq.proposal.ui
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import edu.esandpa202502.apptrueq.model.Publication
@@ -36,6 +38,8 @@ fun ProposalDialog(viewModel: PublicationDetailViewModel, onDismiss: () -> Unit)
     var newOfferImageUri by remember { mutableStateOf<Uri?>(null) }
 
     var proposalMessage by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -110,9 +114,9 @@ fun ProposalDialog(viewModel: PublicationDetailViewModel, onDismiss: () -> Unit)
                         viewModel.submitProposal(proposalMessage, offeredPublicationId = it)
                     }
                 } else {
-                    // SOLUCIÓN: Se descomenta la línea para activar la funcionalidad.
                     viewModel.submitProposalWithNewOffer(proposalMessage, newOfferTitle, newOfferDescription, newOfferImageUri)
                 }
+                Toast.makeText(context, "Su propuesta fue enviada con éxito", Toast.LENGTH_SHORT).show()
                 onDismiss()
             }) {
                 Text("Enviar Propuesta")

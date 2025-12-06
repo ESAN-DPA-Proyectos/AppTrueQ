@@ -16,7 +16,6 @@ class ProposalRepository {
             val batch = db.batch()
             val newProposalRef = proposalsCollection.document()
 
-            // Se usa el ID autogenerado para guardarlo también dentro del documento.
             val proposalWithId = proposal.copy(id = newProposalRef.id)
 
             val notificationRef = db.collection("notifications").document()
@@ -38,10 +37,6 @@ class ProposalRepository {
         }
     }
 
-    /**
-     * SOLUCIÓN: Se implementa la lógica que faltaba.
-     * Obtiene una propuesta por su ID.
-     */
     suspend fun getProposalById(proposalId: String): Proposal? {
         return try {
             val document = proposalsCollection.document(proposalId).get().await()
@@ -52,10 +47,6 @@ class ProposalRepository {
         }
     }
 
-    /**
-     * SOLUCIÓN: Se implementa la lógica que faltaba.
-     * Actualiza el estado de una propuesta.
-     */
     suspend fun updateProposalStatus(proposalId: String, newStatus: String) {
         try {
             proposalsCollection.document(proposalId).update("status", newStatus).await()
@@ -66,17 +57,18 @@ class ProposalRepository {
     }
 
     /**
-     * Obtiene todas las propuestas PENDIENTES que un usuario ha RECIBIDO.
+     * Obtiene TODAS las propuestas que un usuario ha RECIBIDO, sin importar su estado.
+     * ¡ESTA ES LA FUNCIÓN CORREGIDA!
      */
     suspend fun getProposalsReceivedForUser(userId: String): List<Proposal> {
         return try {
             val querySnapshot = proposalsCollection
                 .whereEqualTo("publicationOwnerId", userId)
-                .whereEqualTo("status", "PENDIENTE")
+                // EL FILTRO DE ESTADO HA SIDO ELIMINADO AQUÍ
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            // SOLUCIÓN: Se usa mapeo manual para asegurar que se incluye el ID del documento.
+
             querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(Proposal::class.java)?.copy(id = doc.id)
             }
@@ -86,9 +78,6 @@ class ProposalRepository {
         }
     }
 
-    /**
-     * Obtiene todas las propuestas que un usuario ha ENVIADO.
-     */
     suspend fun getProposalsSentByUser(userId: String): List<Proposal> {
         return try {
             val querySnapshot = proposalsCollection
@@ -96,7 +85,7 @@ class ProposalRepository {
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            // SOLUCIÓN: Se usa mapeo manual para asegurar que se incluye el ID del documento.
+
             querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(Proposal::class.java)?.copy(id = doc.id)
             }
@@ -106,10 +95,6 @@ class ProposalRepository {
         }
     }
 
-    /**
-     * SOLUCIÓN: Se implementa la lógica que faltaba.
-     * Comprueba si ya existe una propuesta de un usuario para una publicación específica.
-     */
     suspend fun hasExistingProposal(userId: String, publicationId: String): Boolean {
         return try {
             val querySnapshot = proposalsCollection

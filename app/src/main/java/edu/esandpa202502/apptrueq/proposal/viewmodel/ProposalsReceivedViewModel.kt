@@ -33,8 +33,16 @@ class ProposalsReceivedViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ProposalsUiState())
     val uiState: StateFlow<ProposalsUiState> = _uiState.asStateFlow()
 
+    // --- Estado para el nuevo filtro ---
+    private val _viewMode = MutableStateFlow("Pendientes") // Opciones: "Pendientes", "Todos"
+    val viewMode: StateFlow<String> = _viewMode.asStateFlow()
+
     init {
         loadProposalsReceived()
+    }
+
+    fun onViewModeChanged(newMode: String) {
+        _viewMode.value = newMode
     }
 
     fun loadProposalsReceived() {
