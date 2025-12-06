@@ -40,6 +40,7 @@ import edu.esandpa202502.apptrueq.moderation.viewmodel.ModerationViewModel
 import edu.esandpa202502.apptrueq.moderation.viewmodel.ModerationViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 object ReportStatus {
     const val PENDING = "Pendiente de revisión"
@@ -76,7 +77,7 @@ private fun DenunciasScreenContent(
     }
 
     Scaffold(
-        topBar = { /* Puedes agregar un TopAppBar si lo necesitas */ }
+        topBar = { /* Podrías agregar un TopAppBar si lo necesitas */ }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -160,7 +161,9 @@ private fun ReportItem(
     viewModel: ModerationViewModel
 ) {
     val dateFormatter = remember {
-        SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+        SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.ENGLISH).apply {
+            timeZone = TimeZone.getTimeZone("America/Lima")
+        }
     }
 
     Card(
@@ -175,7 +178,7 @@ private fun ReportItem(
                 fontWeight = FontWeight.Bold
             )
             Text(text = "Denunciado: ${report.reportedUserName}")
-            Text(text = "Denunciante: ${report.reportingUserId}")
+            Text(text = "Denunciante: ${report.reportingUserName}")
             Text(text = "Motivo: ${report.reason}")
 
             report.createdAt?.let {
@@ -196,9 +199,8 @@ private fun ReportItem(
             ) {
                 Button(
                     onClick = {
-                        navController.navigate(
-                            Routes.PublicationDetail.createRoute(report.publicationId)
-                        )
+                        viewModel.reviewReport(report.id) // Cambia el estado
+                        navController.navigate(Routes.PublicationDetail.createRoute(report.publicationId)) // Navega
                     }
                 ) {
                     Text("Revisar")

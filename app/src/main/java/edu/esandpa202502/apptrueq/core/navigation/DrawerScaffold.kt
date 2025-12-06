@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.outlined.Help
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Badge
@@ -86,8 +90,8 @@ fun DrawerScaffold(
             ),
             NavigationItem(
                 "Necesidad",
-                Icons.Filled.Help,                // icono de HU-11
-                Icons.Outlined.Help,
+                Icons.AutoMirrored.Filled.Help,                // icono de HU-11
+                Icons.AutoMirrored.Outlined.Help,
                 route = Routes.Need.route
             ),
             NavigationItem(
@@ -129,8 +133,8 @@ fun DrawerScaffold(
             ),
             NavigationItem(
                 "Cerrar Sesión",
-                Icons.Filled.Logout,
-                Icons.Outlined.Logout,
+                Icons.AutoMirrored.Filled.Logout,
+                Icons.AutoMirrored.Outlined.Logout,
                 route = Routes.Logout.route
             )
         )
