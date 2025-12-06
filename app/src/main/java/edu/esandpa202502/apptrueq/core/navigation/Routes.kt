@@ -35,4 +35,15 @@ sealed class Routes(
     object PublicationDetail : Routes("publication_detail/{publicationId}", "Detalle", Icons.Default.List) {
         fun createRoute(publicationId: String) = "publication_detail/$publicationId"
     }
+
+
+    // SOLUCIÓN DEFINITIVA: Se define el objeto ReportUser con su función createRoute,
+    // que construye la URL con los parámetros necesarios.
+    object ReportUser : Routes("report_user/{userId}?publicationId={publicationId}") {
+        fun createRoute(userId: String, publicationId: String?): String {
+            val route = "report_user/$userId"
+            // Añade el publicationId como un parámetro de consulta opcional.
+            return if (publicationId != null) "$route?publicationId=$publicationId" else route
+        }
+    }
 }
