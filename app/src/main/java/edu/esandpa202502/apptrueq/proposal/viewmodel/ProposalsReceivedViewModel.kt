@@ -1,4 +1,4 @@
-package edu.esandpa202502.apptrueq.proposal.viewmodel
+package edu.esandpa202502.apptrueq.exchange.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +23,7 @@ data class ProposalsUiState(
     val error: String? = null
 )
 
-class ProposalsReceivedViewModel : ViewModel() {
+class ProposalExchangeViewModel : ViewModel() {
 
     private val proposalRepository = ProposalRepository()
     private val tradeRepository = TradeRepository()
