@@ -29,6 +29,8 @@ data class Proposal(
 
     // Opción A: Se ofrece una publicación ya existente
     val offeredPublicationId: String? = null,
+    val offeredPublicationTitle: String? = null,
+    val offeredPublicationImageUrl: String? = null,
 
     // Opción B: Se ofrece un item nuevo creado en el momento
     val offeredItemTitle: String? = null,
@@ -36,5 +38,6 @@ data class Proposal(
     val offeredItemImageUrl: String? = null,
 
     @ServerTimestamp
-    val createdAt: Timestamp? = null
+    val createdAt: Timestamp? = null,
+    val fechaHora: String? = null
 )
