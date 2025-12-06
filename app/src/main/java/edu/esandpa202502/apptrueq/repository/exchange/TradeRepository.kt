@@ -6,7 +6,6 @@ import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.NotificationItem
 import edu.esandpa202502.apptrueq.model.Offer
 import edu.esandpa202502.apptrueq.model.Trade
-import edu.esandpa202502.apptrueq.model.TradeStatus
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -106,7 +105,7 @@ class TradeRepository {
         return combine(sentFlow, receivedFlow) { sent, received ->
             (sent + received)
                 .distinctBy { it.id }
-                .sortedByDescending { it.createdAt?.toDate() }
+                .sortedByDescending { it.createdAt }
         }
     }
 
@@ -152,7 +151,7 @@ class TradeRepository {
             "receiverId" to receiverId,
             "proposerId" to proposerId,
             "proposerName" to proposerName,
-            "status" to TradeStatus.PENDING,   // estado inicial
+            "status" to "propuesto",   // estado inicial
             "createdAt" to Timestamp.now()
         )
 
@@ -180,7 +179,7 @@ class TradeRepository {
 
             (sent + received)
                 .distinctBy { it.id }
-                .sortedByDescending { it.createdAt?.toDate() }
+                .sortedByDescending { it.createdAt }
         } catch (e: Exception) {
             emptyList()
         }

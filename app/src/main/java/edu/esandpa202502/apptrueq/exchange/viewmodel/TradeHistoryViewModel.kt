@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.model.Trade
-import edu.esandpa202502.apptrueq.model.TradeStatus
 import edu.esandpa202502.apptrueq.repository.exchange.TradeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,11 +42,11 @@ class TradeHistoryViewModel : ViewModel() {
             _statusFilter.collect { status ->
                 val filteredList = when (status) {
                     "Todos" -> allTrades
-                    "Pendiente" -> allTrades.filter { it.status == TradeStatus.PENDING }
-                    "Aceptado" -> allTrades.filter { it.status == TradeStatus.ACCEPTED }
-                    "Rechazado" -> allTrades.filter { it.status == TradeStatus.REJECTED }
-                    "Completado" -> allTrades.filter { it.status == TradeStatus.COMPLETED }
-                    "Cancelado" -> allTrades.filter { it.status == TradeStatus.CANCELLED }
+                    "Pendiente" -> allTrades.filter { it.status == "propuesto" }
+                    "Aceptado" -> allTrades.filter { it.status == "aceptado" }
+                    "Rechazado" -> allTrades.filter { it.status == "rechazado" }
+                    "Completado" -> allTrades.filter { it.status == "completado" }
+                    "Cancelado" -> allTrades.filter { it.status == "cancelado" }
                     else -> allTrades
                 }
                 _uiState.update { it.copy(trades = filteredList) }
