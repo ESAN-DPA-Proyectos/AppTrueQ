@@ -16,7 +16,6 @@ class ExploreRepository {
 
     suspend fun getPublications(): List<Publication> = coroutineScope {
         try {
-            // -------- CONSULTAS EN PARALELO --------
             val offersDeferred = async {
                 db.collection("offers")
                     .orderBy("createdAt", Query.Direction.DESCENDING)
@@ -34,7 +33,6 @@ class ExploreRepository {
             val offersSnapshot = offersDeferred.await()
             val needsSnapshot = needsDeferred.await()
 
-            // -------- MAPEO: OFFER -> PUBLICATION --------
             val offerPublications = offersSnapshot.documents.mapNotNull { document ->
                 val offer = document.toObject(Offer::class.java) ?: return@mapNotNull null
                 val createdAt = offer.createdAt?.toDate() ?: return@mapNotNull null
@@ -42,28 +40,26 @@ class ExploreRepository {
                 Publication(
                     id = document.id,
                     title = offer.title,
-                    description = offer.offerText,          // <- ya no se usa description viejo
+                    description = offer.offerText,
                     category = offer.category,
                     location = "",
                     imageUrl = offer.photos.firstOrNull() ?: "",
                     date = createdAt,
                     userId = offer.ownerId,
                     type = PublicationType.OFFER,
-                    needText = offer.needText              // texto de lo que busca a cambio
+                    needText = offer.needText
                 )
             }
 
-            // -------- MAPEO: NEED -> PUBLICATION --------
             val needPublications = needsSnapshot.documents.mapNotNull { document ->
                 val need = document.toObject(Need::class.java) ?: return@mapNotNull null
                 val createdAt = need.createdAt?.toDate() ?: return@mapNotNull null
-
                 val text = need.needText
 
                 Publication(
                     id = document.id,
-                    title = text.take(40) + "...",
-                    description = text,                    // <- usamos need.needText
+                    title = text.take(40) + if (text.length > 40) "..." else "",
+                    description = text,
                     category = need.category,
                     location = "",
                     imageUrl = "",
@@ -74,13 +70,24 @@ class ExploreRepository {
                 )
             }
 
-            // -------- UNIR Y ORDENAR --------
-            (offerPublications + needPublications)
-                .sortedByDescending { it.date }
+            (offerPublications + needPublications).sortedByDescending { it.date }
 
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+    /**
+     * Obtiene el nombre de un usuario a partir de su ID.
+     */
+    suspend fun getUserName(userId: String): String {
+        return try {
+            val userDocument = db.collection("users").document(userId).get().await()
+            userDocument.getString("name") ?: "Usuario Desconocido"
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "Usuario Desconocido"
         }
     }
 }

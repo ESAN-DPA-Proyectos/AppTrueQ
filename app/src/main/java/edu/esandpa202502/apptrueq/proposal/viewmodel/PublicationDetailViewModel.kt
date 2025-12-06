@@ -21,6 +21,7 @@ import kotlinx.coroutines.tasks.await
 data class PublicationDetailUiState(
     val isLoading: Boolean = true,
     val publication: Publication? = null,
+    val publicationOwnerName: String? = null,
     val userPublications: List<Publication> = emptyList(),
     val error: String? = null,
     val proposalError: String? = null,
@@ -39,18 +40,26 @@ class PublicationDetailViewModel(private val publicationId: String) : ViewModel(
     val uiState: StateFlow<PublicationDetailUiState> = _uiState.asStateFlow()
 
     init {
-        loadPublication()
+        loadPublicationAndOwner()
         loadUserPublications()
     }
 
-    private fun loadPublication() {
+    /**
+     * SOLUCIÓN: Carga la publicación y después busca el nombre de su autor.
+     */
+    private fun loadPublicationAndOwner() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val publication = publicationRepository.getPublicationById(publicationId)
-                _uiState.update { it.copy(isLoading = false, publication = publication) }
+                if (publication != null) {
+                    val owner = userRepository.getUserById(publication.userId)
+                    _uiState.update { it.copy(publication = publication, publicationOwnerName = owner?.name) }
+                }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "Error al cargar la publicación.") }
+                _uiState.update { it.copy(error = "Error al cargar la publicación.") }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

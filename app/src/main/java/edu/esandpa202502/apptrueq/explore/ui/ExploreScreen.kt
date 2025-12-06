@@ -14,17 +14,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import edu.esandpa202502.apptrueq.core.navigation.Routes
+import edu.esandpa202502.apptrueq.explore.viewmodel.ExploreViewModel
 import edu.esandpa202502.apptrueq.model.Publication
 import edu.esandpa202502.apptrueq.repository.explore.ExploreRepository
-
-// QA: Se importa la implementación concreta desde su ubicación centralizada.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
     navController: NavController
 ) {
-    // QA: CORRECCIÓN DEFINITIVA - Se instancia la clase `ExploreRepositoryImpl()` en lugar de la interfaz `ExploreRepository()`.
     val viewModel: ExploreViewModel = viewModel(
         factory = ExploreViewModelFactory(ExploreRepository())
     )
@@ -120,9 +118,14 @@ fun ExploreScreen(
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         items(uiState.publications, key = { it.id }) { publication ->
-                            PublicationCard(publication = publication) { 
-                                navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
-                            }
+                            val authorName = uiState.authorNames[publication.userId] ?: "Usuario Desconocido"
+                            PublicationCard(
+                                publication = publication,
+                                authorName = authorName,
+                                onClick = { 
+                                    navController.navigate(Routes.PublicationDetail.createRoute(publication.id))
+                                }
+                            )
                         }
                     }
                 }
@@ -132,7 +135,7 @@ fun ExploreScreen(
 }
 
 @Composable
-fun PublicationCard(publication: Publication, onClick: () -> Unit) {
+fun PublicationCard(publication: Publication, authorName: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,9 +151,14 @@ fun PublicationCard(publication: Publication, onClick: () -> Unit) {
                     .height(180.dp),
                 contentScale = ContentScale.Crop
             )
+
             Column(Modifier.padding(16.dp)) {
                 Text(publication.title, style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(4.dp))
+                Text(publication.category, style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(4.dp))
+                Text("Publicado por: $authorName", style = MaterialTheme.typography.bodySmall)
+                Spacer(Modifier.height(6.dp))
                 Text(publication.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                  Spacer(Modifier.height(8.dp))
                 Button(onClick = onClick) {

@@ -8,5 +8,6 @@ import edu.esandpa202502.apptrueq.model.Publication
 data class ExploreUiState(
     val isLoading: Boolean = false,
     val publications: List<Publication> = emptyList(),
+    val authorNames: Map<String, String> = emptyMap(), // Mapa de userId -> userName
     val error: String? = null
 )
