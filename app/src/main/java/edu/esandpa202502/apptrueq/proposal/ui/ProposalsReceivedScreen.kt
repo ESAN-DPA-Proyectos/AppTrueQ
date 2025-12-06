@@ -154,7 +154,7 @@ private fun ProposalCard(
 
                  Spacer(Modifier.height(8.dp))
 
-                 proposal.offeredItemImageUrl?.takeIf { it.isNotBlank() }?.let {
+                 /*proposal.offeredItemImageUrl?.takeIf { it.isNotBlank() }?.let {
                      Text("Imagen de propuesta:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                      Text(it, style = MaterialTheme.typography.bodySmall)
                      Spacer(Modifier.height(4.dp))
@@ -163,7 +163,7 @@ private fun ProposalCard(
                      Text("Imagen de publicación:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                      Text(it, style = MaterialTheme.typography.bodySmall)
                      Spacer(Modifier.height(4.dp))
-                 }
+                 }*/
                  
                  proposal.createdAt?.let { timestamp ->
                     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE"))
