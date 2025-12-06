@@ -1,24 +1,67 @@
 package edu.esandpa202502.apptrueq.repository.notification
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.NotificationItem
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 class NotificationRepository {
 
     private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
     private val notificationsCollection = db.collection("notifications")
 
     /**
-     * Obtiene las notificaciones de un usuario en tiempo real.
-     * SOLUCIÓN DEFINITIVA: Se reemplaza `toObjects()` por un mapeo manual (`mapNotNull`)
-     * para asegurar que el ID del documento siempre se asigne correctamente a la propiedad `id` del modelo.
-     * Esto previene el crash de `LazyColumn` por claves duplicadas.
+     * Crea un Flow que emite el usuario actual cada vez que el estado de autenticación cambia.
+     * Emite el usuario (FirebaseUser) si está logueado, o null si ha cerrado sesión.
      */
+    private val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            trySend(firebaseAuth.currentUser)
+        }
+        auth.addAuthStateListener(authStateListener)
+        awaitClose { auth.removeAuthStateListener(authStateListener) }
+    }
+
+    /**
+     * Obtiene el recuento de notificaciones no leídas en tiempo real.
+     * Usa `flatMapLatest` para reaccionar a los cambios en `authStateFlow`.
+     * Cuando el usuario inicia sesión, crea un nuevo listener de Firestore.
+     * Cuando el usuario cierra sesión, cancela el listener y emite 0.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getUnreadNotificationCountStream(): Flow<Int> = authStateFlow.flatMapLatest { user ->
+        if (user == null) {
+            // Si no hay usuario, simplemente emite 0.
+            flowOf(0)
+        } else {
+            // Si hay un usuario, crea el listener para sus notificaciones no leídas.
+            callbackFlow {
+                val listener = notificationsCollection
+                    .whereEqualTo("userId", user.uid)
+                    .whereEqualTo("isRead", false)
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            channel.close(error)
+                            return@addSnapshotListener
+                        }
+                        val count = snapshot?.size() ?: 0
+                        trySend(count)
+                    }
+                // Esta corrutina se cancelará automáticamente por flatMapLatest cuando el usuario cambie.
+                awaitClose { listener.remove() }
+            }
+        }
+    }
+
     fun getNotifications(userId: String): Flow<List<NotificationItem>> = callbackFlow {
         val listener = notificationsCollection
             .whereEqualTo("userId", userId)
@@ -34,15 +77,12 @@ class NotificationRepository {
                     return@addSnapshotListener
                 }
 
-                // Mapeo manual para asegurar la correcta asignación del ID.
                 val notifications = snapshot.documents.mapNotNull { document ->
                     try {
-                        // Convierte el documento al objeto y le asigna el ID del documento.
                         document.toObject(NotificationItem::class.java)?.apply {
                             id = document.id
                         }
                     } catch (e: Exception) {
-                        // Si un documento está corrupto y no se puede mapear, se ignora en lugar de crashear la app.
                         println("Error mapeando notificación: ${e.message}")
                         null
                     }
@@ -53,11 +93,6 @@ class NotificationRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Añade una nueva notificación a Firestore.
-     * Se usa .add() para que Firestore genere el ID automáticamente.
-     * La anotación @get:Exclude en el modelo se encarga de no guardar el campo 'id'.
-     */
     suspend fun addNotification(notification: NotificationItem) {
         try {
             notificationsCollection.add(notification).await()
