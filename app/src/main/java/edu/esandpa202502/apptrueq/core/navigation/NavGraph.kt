@@ -83,7 +83,6 @@ fun NavGraph(navController: NavHostController) {
             TradeHistoryScreen(navController = navController)
         }
 
-        // 🔵 ProposalsReceivedScreen YA NO RECIBE navController, solo el ViewModel interno
         composable(Routes.ProposalsReceived.route) {
             ProposalsReceivedScreen()
         }
@@ -93,7 +92,6 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            // 🔵 TradeDetailScreen SÍ recibe navController como primer parámetro
             TradeDetailScreen(
                 navController = navController,
                 tradeId = tradeId,
@@ -108,14 +106,8 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = Routes.NotificationDetail.route,
             arguments = listOf(
-                navArgument("notificationId") {
-                    type = NavType.StringType
-                    nullable = true
-                },
-                navArgument("referenceId") {
-                    type = NavType.StringType
-                    nullable = true
-                }
+                navArgument("notificationId") { type = NavType.StringType; nullable = true },
+                navArgument("referenceId") { type = NavType.StringType; nullable = true }
             )
         ) { backStackEntry ->
             val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
@@ -127,13 +119,23 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // HU-10: Reporte de usuario desde el menú lateral (sin argumento obligatorio por ahora)
+        // CORREGIDO: Ruta de ReportUser con todos los argumentos necesarios.
         composable(
-            route = Routes.ReportUser.route
-        ) {
+            route = Routes.ReportUser.route,
+            arguments = listOf(
+                navArgument("publicationId") { type = NavType.StringType },
+                navArgument("reportedUserId") { type = NavType.StringType },
+                navArgument("reportedUserName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
+            val reportedUserId = backStackEntry.arguments?.getString("reportedUserId") ?: ""
+            val reportedUserName = backStackEntry.arguments?.getString("reportedUserName") ?: ""
             ReportUserScreen(
                 navController = navController,
-                reportedUserId = ""
+                publicationId = publicationId,
+                reportedUserId = reportedUserId,
+                reportedUserName = reportedUserName
             )
         }
 
@@ -142,7 +144,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(Routes.Denuncias.route) { 
-            DenunciasScreen(navController = navController) // Corregido para pasar el navController
+            DenunciasScreen(navController = navController)
         }
 
         composable(

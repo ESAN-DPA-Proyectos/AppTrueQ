@@ -23,12 +23,12 @@ class ReportViewModel(
     val reportState: StateFlow<ReportState> = _reportState
 
     /**
-     * Envía un reporte usando los campos que llenas en el formulario.
-     * MODIFICADO: Ahora también requiere el ID de la publicación.
+     * Envía un reporte usando los campos correctos del modelo.
      */
     fun submitReport(
-        publicationId: String, // Añadido
-        reportedEmail: String,
+        publicationId: String,
+        reportedUserId: String,
+        reportedUserName: String,
         reason: String,
         description: String,
         reporterId: String
@@ -37,8 +37,9 @@ class ReportViewModel(
             _reportState.value = ReportState.Loading
             try {
                 reportRepository.submitReport(
-                    publicationId = publicationId, // Añadido
-                    reportedEmail = reportedEmail,
+                    publicationId = publicationId,
+                    reportedUserId = reportedUserId,
+                    reportedUserName = reportedUserName,
                     reason = reason,
                     description = description,
                     reporterId = reporterId

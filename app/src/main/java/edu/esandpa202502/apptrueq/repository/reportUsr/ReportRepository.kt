@@ -15,42 +15,33 @@ class ReportRepository {
     private val reportsCollection = db.collection("reports")
 
     /**
-     * HU-10: Guarda un nuevo reporte en la base de datos
-     * a partir de campos sueltos (más fácil de usar desde el ViewModel).
+     * Guarda un nuevo reporte en la base de datos con los campos correctos.
      */
     suspend fun submitReport(
-        reportedEmail: String,
+        publicationId: String,
+        reportedUserId: String,
+        reportedUserName: String,
         reason: String,
         description: String,
         reporterId: String
     ) {
         val data = hashMapOf(
-            "reportedEmail" to reportedEmail,
+            "publicationId" to publicationId,
+            "reportedUserId" to reportedUserId,
+            "reportedUserName" to reportedUserName,
             "reason" to reason,
             "description" to description,
             "reporterId" to reporterId,
-            "createdAt" to Timestamp.now()
+            "createdAt" to Timestamp.now(),
+            "status" to "Pendiente de revisión"
         )
 
         reportsCollection.add(data).await()
     }
 
     /**
-     * Versión que recibe un objeto Report completo.
-     * (La mantengo por si la quieres usar en otro contexto.)
-     */
-    suspend fun submitReport(report: Report) {
-        try {
-            reportsCollection.add(report).await()
-        } catch (e: Exception) {
-            // Propaga la excepción para que sea manejada por el ViewModel.
-            throw e
-        }
-    }
-
-    /**
-     * Obtiene todos los reportes (para un futuro panel de moderación).
-     * MODIFICADO: Ahora mapea el ID del documento al objeto Report para evitar claves duplicadas.
+     * Obtiene todos los reportes, mapeando el ID del documento para evitar claves duplicadas.
+     * ESTA ES LA CORRECCIÓN DEFINITIVA.
      */
     suspend fun getAllReports(): List<Report> {
         return try {
@@ -59,11 +50,15 @@ class ReportRepository {
                 .get()
                 .await()
             
+            // Mapea los documentos y asigna el ID a cada objeto Report.
             querySnapshot.documents.mapNotNull { document ->
-                document.toObject(Report::class.java)?.copy(id = document.id)
+                // Convierte el documento a un objeto Report
+                val report = document.toObject(Report::class.java)
+                // Asigna el ID del documento de Firestore al campo 'id' del objeto.
+                report?.copy(id = document.id)
             }
         } catch (e: Exception) {
-            // En un caso real, aquí se registraría el error (e.g., Log.e("ReportRepository", "Error fetching reports", e))
+            // En caso de error, devuelve una lista vacía para no romper la app.
             emptyList()
         }
     }
