@@ -24,6 +24,7 @@ import edu.esandpa202502.apptrueq.moderation.ui.ModerationScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
+import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
@@ -68,9 +69,16 @@ fun NavGraph(navController: NavHostController) {
             NeedScreen()
         }
 
+        // HU-03: QR / Mis Publicaciones
+        composable(Routes.PublicationQR.route) {
+            MyPublicationsScreen()
+        }
+
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("id") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val publicationId = backStackEntry.arguments?.getString("id") ?: ""
             PublicationDetailScreen(
@@ -89,7 +97,9 @@ fun NavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.TradeDetail.route,
-            arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("tradeId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
             TradeDetailScreen(
@@ -119,7 +129,7 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // CORREGIDO: Ruta de ReportUser con todos los argumentos necesarios.
+        // Reportar usuario (HU-10) con los 3 argumentos
         composable(
             route = Routes.ReportUser.route,
             arguments = listOf(
@@ -139,17 +149,20 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        // Panel de moderación (HU-11)
         composable(Routes.ModerationPanel.route) {
             ModerationScreen(navController = navController)
         }
 
-        composable(Routes.Denuncias.route) { 
+        composable(Routes.Denuncias.route) {
             DenunciasScreen(navController = navController)
         }
 
         composable(
             route = Routes.DenunciaDetail.route,
-            arguments = listOf(navArgument("reportId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("reportId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
             DenunciaDetailScreen(reportId = reportId)

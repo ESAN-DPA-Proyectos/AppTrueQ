@@ -21,63 +21,51 @@ data class TradeHistoryUiState(
 
 class TradeHistoryViewModel : ViewModel() {
 
-    // --- REPOSITORIO Y AUTH ---
     private val tradeRepository = TradeRepository()
     private val auth = FirebaseAuth.getInstance()
 
-    // --- ESTADO DE LA UI ---
     private val _uiState = MutableStateFlow(TradeHistoryUiState())
     val uiState = _uiState.asStateFlow()
 
-    // --- FILTROS ---
-    private var allTrades: List<Trade> = emptyList() // Lista original sin filtrar
+    private var allTrades: List<Trade> = emptyList()
     private val _statusFilter = MutableStateFlow("Todos")
     val statusFilter = _statusFilter.asStateFlow()
 
     init {
         loadTradeHistory()
-
-        // Cada vez que cambia el filtro, recalculamos la lista mostrada
-        viewModelScope.launch {
-            _statusFilter.collect { status ->
-                val filteredList = when (status) {
-                    "Todos" -> allTrades
-                    "Pendiente" -> allTrades.filter { it.status == "propuesto" }
-                    "Aceptado" -> allTrades.filter { it.status == "aceptado" }
-                    "Rechazado" -> allTrades.filter { it.status == "rechazado" }
-                    "Completado" -> allTrades.filter { it.status == "completado" }
-                    "Cancelado" -> allTrades.filter { it.status == "cancelado" }
-                    else -> allTrades
-                }
-                _uiState.update { it.copy(trades = filteredList) }
-            }
-        }
     }
 
-    /**
-     * Carga el historial completo de trueques del usuario actual.
-     */
     private fun loadTradeHistory() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                // Usa el método REAL del TradeRepository
                 allTrades = tradeRepository.getTradeHistory(userId)
-                // Aplica el filtro actual sobre la lista recién cargada
-                onStatusFilterChanged(_statusFilter.value)
+                // ¡SOLUCIÓN! Forzamos la actualización del filtro inicial.
+                applyFilter(allTrades, _statusFilter.value)
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error al cargar el historial: ${e.message}") }
+                _uiState.update { it.copy(isLoading = false, error = "Error al cargar el historial: ${e.message}") }
             } finally {
-                _uiState.update { it.copy(isLoading = false) }
+                 _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    /**
-     * Se llama desde la UI cuando el usuario selecciona un nuevo filtro de estado.
-     */
     fun onStatusFilterChanged(newStatus: String) {
         _statusFilter.value = newStatus
+        // Aplicar filtro cada vez que el usuario cambia la selección
+        applyFilter(allTrades, newStatus)
+    }
+
+    /**
+     * Función privada que centraliza la lógica de filtrado y actualiza la UI.
+     */
+    private fun applyFilter(trades: List<Trade>, status: String) {
+        val filteredList = if (status == "Todos") {
+            trades
+        } else {
+            trades.filter { it.status.equals(status, ignoreCase = true) }
+        }
+        _uiState.update { it.copy(trades = filteredList) }
     }
 }
