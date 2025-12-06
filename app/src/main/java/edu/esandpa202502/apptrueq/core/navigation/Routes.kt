@@ -14,6 +14,8 @@ sealed class Routes(val route: String) {
     object ReportUser : Routes("reportUsr_user")
     object Offer : Routes("offer")
     object Need : Routes("need")
+    object ModerationPanel : Routes("moderation_panel")
+    object Denuncias : Routes("denuncias") // Nueva ruta para la pantalla de denuncias
 
     // Rutas con argumentos
     object PublicationDetail : Routes("publication_detail/{id}") {
@@ -26,5 +28,9 @@ sealed class Routes(val route: String) {
 
     object NotificationDetail : Routes("notification_detail/{notificationId}/{referenceId}") {
         fun createRoute(notificationId: String, referenceId: String) = "notification_detail/$notificationId/$referenceId"
+    }
+
+    object DenunciaDetail : Routes("denuncia_detail/{reportId}") {
+        fun createRoute(reportId: String) = "denuncia_detail/$reportId"
     }
 }

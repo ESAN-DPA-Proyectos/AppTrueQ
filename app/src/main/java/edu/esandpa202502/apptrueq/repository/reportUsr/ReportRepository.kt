@@ -50,15 +50,20 @@ class ReportRepository {
 
     /**
      * Obtiene todos los reportes (para un futuro panel de moderación).
+     * MODIFICADO: Ahora mapea el ID del documento al objeto Report para evitar claves duplicadas.
      */
     suspend fun getAllReports(): List<Report> {
         return try {
-            reportsCollection
+            val querySnapshot = reportsCollection
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-                .toObjects(Report::class.java)
+            
+            querySnapshot.documents.mapNotNull { document ->
+                document.toObject(Report::class.java)?.copy(id = document.id)
+            }
         } catch (e: Exception) {
+            // En un caso real, aquí se registraría el error (e.g., Log.e("ReportRepository", "Error fetching reports", e))
             emptyList()
         }
     }

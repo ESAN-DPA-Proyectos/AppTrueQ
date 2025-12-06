@@ -24,9 +24,10 @@ class ReportViewModel(
 
     /**
      * Envía un reporte usando los campos que llenas en el formulario.
-     * (No hay más `isSuccess`, ni `exceptionOrNull`, ni parámetros raros.)
+     * MODIFICADO: Ahora también requiere el ID de la publicación.
      */
     fun submitReport(
+        publicationId: String, // Añadido
         reportedEmail: String,
         reason: String,
         description: String,
@@ -36,6 +37,7 @@ class ReportViewModel(
             _reportState.value = ReportState.Loading
             try {
                 reportRepository.submitReport(
+                    publicationId = publicationId, // Añadido
                     reportedEmail = reportedEmail,
                     reason = reason,
                     description = description,

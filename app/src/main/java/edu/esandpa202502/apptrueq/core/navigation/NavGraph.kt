@@ -18,6 +18,9 @@ import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
 import edu.esandpa202502.apptrueq.proposal.ui.ProposalsReceivedScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
 import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
+import edu.esandpa202502.apptrueq.moderation.ui.DenunciaDetailScreen
+import edu.esandpa202502.apptrueq.moderation.ui.DenunciasScreen
+import edu.esandpa202502.apptrueq.moderation.ui.ModerationScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
@@ -132,6 +135,22 @@ fun NavGraph(navController: NavHostController) {
                 navController = navController,
                 reportedUserId = ""
             )
+        }
+
+        composable(Routes.ModerationPanel.route) {
+            ModerationScreen(navController = navController)
+        }
+
+        composable(Routes.Denuncias.route) { 
+            DenunciasScreen(navController = navController) // Corregido para pasar el navController
+        }
+
+        composable(
+            route = Routes.DenunciaDetail.route,
+            arguments = listOf(navArgument("reportId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
+            DenunciaDetailScreen(reportId = reportId)
         }
     }
 }

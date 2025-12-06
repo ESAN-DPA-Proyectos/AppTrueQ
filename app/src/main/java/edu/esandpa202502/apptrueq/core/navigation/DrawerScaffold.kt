@@ -83,6 +83,12 @@ fun DrawerScaffold(navController: NavController, content: @Composable () -> Unit
             route = Routes.ReportUser.route
         ),
         NavigationItem(
+            "Moderador",
+            Icons.Filled.AdminPanelSettings,
+            Icons.Outlined.AdminPanelSettings,
+            route = Routes.ModerationPanel.route
+        ),
+        NavigationItem(
             "Propuestas Recibidas",
             Icons.Filled.SwapHoriz,
             Icons.Outlined.SwapHoriz,
