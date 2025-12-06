@@ -36,6 +36,25 @@ class ProposalRepository {
             throw e
         }
     }
+    
+    suspend fun getPublicationTitle(publicationId: String): String? {
+        return try {
+            var doc = db.collection("offers").document(publicationId).get().await()
+            if (doc.exists()) {
+                return doc.getString("title")
+            }
+
+            doc = db.collection("needs").document(publicationId).get().await()
+            if (doc.exists()) {
+                val text = doc.getString("needText") ?: ""
+                return text.take(40) + if (text.length > 40) "..." else ""
+            }
+            null
+        } catch (e: Exception) {
+            println("Error getting publication title: ${e.message}")
+            null
+        }
+    }
 
     suspend fun getProposalById(proposalId: String): Proposal? {
         return try {
@@ -56,15 +75,10 @@ class ProposalRepository {
         }
     }
 
-    /**
-     * Obtiene TODAS las propuestas que un usuario ha RECIBIDO, sin importar su estado.
-     * ¡ESTA ES LA FUNCIÓN CORREGIDA!
-     */
     suspend fun getProposalsReceivedForUser(userId: String): List<Proposal> {
         return try {
             val querySnapshot = proposalsCollection
                 .whereEqualTo("publicationOwnerId", userId)
-                // EL FILTRO DE ESTADO HA SIDO ELIMINADO AQUÍ
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
