@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.History
@@ -49,6 +48,7 @@ fun ModerationScreen(
     val reports by moderationViewModel.reports.collectAsState()
     val pendingReportsCount by moderationViewModel.pendingReportsCount.collectAsState()
     val inReviewReportsCount by moderationViewModel.inReviewReportsCount.collectAsState()
+    val resolvedReportsCount by moderationViewModel.resolvedReportsCount.collectAsState()
 
     Scaffold(
         topBar = { /* TODO: Add TopAppBar */ }
@@ -70,8 +70,8 @@ fun ModerationScreen(
                 icon = Icons.Default.Report,
                 title = "Denuncias",
                 mainText = "${reports.size} Denuncias registradas",
-                secondaryText = "$pendingReportsCount pendientes\n$inReviewReportsCount en revisión",
-                onClick = { navController.navigate(Routes.Denuncias.route) } // Actualizado para navegar
+                secondaryText = "$pendingReportsCount pendientes\n$inReviewReportsCount en revisión\n$resolvedReportsCount resueltas",
+                onClick = { navController.navigate(Routes.Denuncias.route) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -79,9 +79,9 @@ fun ModerationScreen(
             ModerationCard(
                 icon = Icons.Default.Assignment,
                 title = "Publicaciones",
-                mainText = "8 publicaciones revisadas", // Dato de ejemplo
-                secondaryText = "3 reportadas\n2 bloqueadas", // Dato de ejemplo
-                onClick = { /* TODO: Navegar a Publicaciones */ }
+                mainText = "8 publicaciones revisadas",
+                secondaryText = "3 reportadas\n2 bloqueadas",
+                onClick = { navController.navigate(Routes.ReportedPublications.route) } // CORREGIDO
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -89,8 +89,8 @@ fun ModerationScreen(
             ModerationCard(
                 icon = Icons.Default.People,
                 title = "Usuarios",
-                mainText = "15 usuarios gestionados", // Dato de ejemplo
-                secondaryText = "6 denunciados\n2 suspendidos", // Dato de ejemplo
+                mainText = "15 usuarios gestionados",
+                secondaryText = "6 denunciados\n2 suspendidos",
                 onClick = { /* TODO: Navegar a Usuarios */ }
             )
 
@@ -100,7 +100,7 @@ fun ModerationScreen(
                 icon = Icons.Default.History,
                 title = "Historial",
                 mainText = "Registro de acciones",
-                secondaryText = "8 recientes\nÚltimas 24h", // Dato de ejemplo
+                secondaryText = "8 recientes\nÚltimas 24h",
                 onClick = { /* TODO: Navegar a Historial */ }
             )
 
@@ -118,7 +118,7 @@ fun ModerationScreen(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 SummaryItem(count = pendingReportsCount, label = "denuncias pendientes")
-                SummaryItem(count = 3, label = "Posts reportados") // Dato de ejemplo
+                SummaryItem(count = 3, label = "Posts reportados")
             }
         }
     }
@@ -175,7 +175,6 @@ private fun SummaryItem(count: Int, label: String) {
         Text(text = label, style = MaterialTheme.typography.bodySmall)
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

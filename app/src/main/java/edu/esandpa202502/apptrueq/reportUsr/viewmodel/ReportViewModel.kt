@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// Estado simple para HU-10
 sealed class ReportState {
     object Idle : ReportState()
     object Loading : ReportState()
@@ -22,16 +21,14 @@ class ReportViewModel(
     private val _reportState = MutableStateFlow<ReportState>(ReportState.Idle)
     val reportState: StateFlow<ReportState> = _reportState
 
-    /**
-     * Envía un reporte usando los campos correctos del modelo.
-     */
     fun submitReport(
         publicationId: String,
         reportedUserId: String,
         reportedUserName: String,
         reason: String,
         description: String,
-        reporterId: String
+        reporterId: String,
+        reporterName: String // Añadido
     ) {
         viewModelScope.launch {
             _reportState.value = ReportState.Loading
@@ -42,7 +39,8 @@ class ReportViewModel(
                     reportedUserName = reportedUserName,
                     reason = reason,
                     description = description,
-                    reporterId = reporterId
+                    reporterId = reporterId,
+                    reporterName = reporterName // Añadido
                 )
                 _reportState.value = ReportState.Success
             } catch (e: Exception) {

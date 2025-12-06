@@ -13,7 +13,6 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.reportUsr.viewmodel.ReportState
 import edu.esandpa202502.apptrueq.reportUsr.viewmodel.ReportViewModel
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +65,6 @@ fun ReportUserScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
-        // CORREGIDO: Se usa un Box para evitar conflictos de layout con Spacer.weight
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -117,13 +115,15 @@ fun ReportUserScreen(
             Button(
                 onClick = {
                     val reporterId = currentUser?.uid ?: ""
+                    val reporterName = currentUser?.displayName ?: "Usuario Anónimo"
                     viewModel.submitReport(
                         publicationId = publicationId,
                         reportedUserId = reportedUserId,
                         reportedUserName = reportedUserName,
                         reason = reason,
                         description = comments,
-                        reporterId = reporterId
+                        reporterId = reporterId,
+                        reporterName = reporterName // Añadido
                     )
                 },
                 modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),

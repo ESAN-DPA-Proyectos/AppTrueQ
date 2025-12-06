@@ -21,17 +21,17 @@ import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.moderation.ui.DenunciaDetailScreen
 import edu.esandpa202502.apptrueq.moderation.ui.DenunciasScreen
 import edu.esandpa202502.apptrueq.moderation.ui.ModerationScreen
+import edu.esandpa202502.apptrueq.moderation.ui.ReportedPublicationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
-import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 import edu.esandpa202502.apptrueq.need.ui.NeedScreen
 
 @Composable
-fun AppNavGraph(navController: NavHostController) {
+fun NavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,
@@ -69,16 +69,9 @@ fun AppNavGraph(navController: NavHostController) {
             NeedScreen()
         }
 
-        // HU-03: QR / Mis Publicaciones
-        composable(Routes.PublicationQR.route) {
-            MyPublicationsScreen()
-        }
-
         composable(
             route = Routes.PublicationDetail.route,
-            arguments = listOf(
-                navArgument("id") { type = NavType.StringType }
-            )
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
         ) { backStackEntry ->
             val publicationId = backStackEntry.arguments?.getString("id") ?: ""
             PublicationDetailScreen(
@@ -97,9 +90,7 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(
             route = Routes.TradeDetail.route,
-            arguments = listOf(
-                navArgument("tradeId") { type = NavType.StringType }
-            )
+            arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
             TradeDetailScreen(
@@ -129,7 +120,6 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        // Reportar usuario (HU-10) con los 3 argumentos
         composable(
             route = Routes.ReportUser.route,
             arguments = listOf(
@@ -149,23 +139,23 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        // Panel de moderación (HU-11)
         composable(Routes.ModerationPanel.route) {
             ModerationScreen(navController = navController)
         }
 
-        composable(Routes.Denuncias.route) {
+        composable(Routes.Denuncias.route) { 
             DenunciasScreen(navController = navController)
         }
 
         composable(
             route = Routes.DenunciaDetail.route,
-            arguments = listOf(
-                navArgument("reportId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
-            DenunciaDetailScreen(reportId = reportId)
+            arguments = listOf(navArgument("reportId") { type = NavType.StringType })
+        ) { it ->
+            DenunciaDetailScreen(reportId = it.arguments?.getString("reportId") ?: "")
+        }
+
+        composable(Routes.ReportedPublications.route) { // Añadido
+            ReportedPublicationsScreen(navController = navController)
         }
     }
 }
