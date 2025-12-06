@@ -34,27 +34,31 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.Timestamp
 import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.model.Report
 import edu.esandpa202502.apptrueq.moderation.viewmodel.ModerationViewModel
 import edu.esandpa202502.apptrueq.moderation.viewmodel.ModerationViewModelFactory
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
+
+object ReportStatus {
+    const val PENDING = "Pendiente de revisión"
+    const val IN_REVIEW = "En revisión"
+    const val RESOLVED = "Resuelta"
+}
 
 @Composable
 fun DenunciasScreen(
-    navController: NavController, // Añadido NavController
+    navController: NavController, 
     moderationViewModel: ModerationViewModel = viewModel(factory = ModerationViewModelFactory())
 ) {
     val reports by moderationViewModel.reports.collectAsState()
-    DenunciasScreenContent(navController = navController, reports = reports)
+    DenunciasScreenContent(navController = navController, reports = reports, viewModel = moderationViewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DenunciasScreenContent(navController: NavController, reports: List<Report>) {
+private fun DenunciasScreenContent(navController: NavController, reports: List<Report>, viewModel: ModerationViewModel) {
     var selectedStatus by remember { mutableStateOf("Todas") }
 
     val filteredReports = if (selectedStatus == "Todas") {
@@ -79,7 +83,7 @@ private fun DenunciasScreenContent(navController: NavController, reports: List<R
             )
             LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
                 items(filteredReports, key = { it.id }) { report ->
-                    ReportItem(navController = navController, report = report)
+                    ReportItem(navController = navController, report = report, viewModel = viewModel)
                 }
             }
         }
@@ -90,7 +94,7 @@ private fun DenunciasScreenContent(navController: NavController, reports: List<R
 @Composable
 private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
-    val statuses = listOf("Todas", "Pendiente", "En revisión", "Resuelta")
+    val statuses = listOf("Todas", ReportStatus.PENDING, ReportStatus.IN_REVIEW, ReportStatus.RESOLVED)
 
     ExposedDropdownMenuBox(
         expanded = isExpanded,
@@ -109,8 +113,9 @@ private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> U
             onDismissRequest = { isExpanded = false }
         ) {
             statuses.forEach { status ->
+                val displayText = if (status == ReportStatus.PENDING) "Pendiente" else status
                 DropdownMenuItem(
-                    text = { Text(text = status) },
+                    text = { Text(text = displayText) },
                     onClick = {
                         onStatusSelected(status)
                         isExpanded = false
@@ -122,7 +127,7 @@ private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> U
 }
 
 @Composable
-private fun ReportItem(navController: NavController, report: Report) {
+private fun ReportItem(navController: NavController, report: Report, viewModel: ModerationViewModel) {
     val dateFormatter = remember { SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()) }
 
     Card(
@@ -139,7 +144,11 @@ private fun ReportItem(navController: NavController, report: Report) {
             report.createdAt?.let {
                 Text(text = "Fecha: ${dateFormatter.format(it.toDate())}")
             }
-            Text(text = "Estado: ${report.status}")
+            val displayStatus = when (report.status) {
+                ReportStatus.PENDING -> "Pendiente"
+                else -> report.status
+            }
+            Text(text = "Estado: $displayStatus")
 
             Row(
                 modifier = Modifier
@@ -147,11 +156,11 @@ private fun ReportItem(navController: NavController, report: Report) {
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                Button(onClick = { navController.navigate(Routes.PublicationDetail.createRoute(report.publicationId)) }) { // Corregido: Navega al detalle de la publicación
+                Button(onClick = { navController.navigate(Routes.PublicationDetail.createRoute(report.publicationId)) }) {
                     Text("Revisar")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = { /* TODO: Lógica de Resolver */ }) {
+                Button(onClick = { viewModel.resolveReport(report.id) }) { // CORREGIDO
                     Text("Resolver")
                 }
             }
@@ -163,6 +172,8 @@ private fun ReportItem(navController: NavController, report: Report) {
 @Composable
 private fun DenunciasScreenPreview() {
     MaterialTheme {
-        DenunciasScreenContent(navController = rememberNavController(), reports = emptyList())
+        // Tuve que improvisar un viewModel para la preview, ya que ahora es necesario.
+        val viewModel: ModerationViewModel = viewModel(factory = ModerationViewModelFactory())
+        DenunciasScreenContent(navController = rememberNavController(), reports = emptyList(), viewModel = viewModel)
     }
 }

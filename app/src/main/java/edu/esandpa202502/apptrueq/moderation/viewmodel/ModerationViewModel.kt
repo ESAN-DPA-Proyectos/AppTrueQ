@@ -29,8 +29,32 @@ class ModerationViewModel : ViewModel() {
         viewModelScope.launch {
             val allReports = reportRepository.getAllReports()
             _reports.value = allReports
-            _pendingReportsCount.value = allReports.count { it.status == "Pendiente" }
-            _inReviewReportsCount.value = allReports.count { it.status == "En revisión" }
+            updateCounts(allReports)
         }
+    }
+
+    fun resolveReport(reportId: String) {
+        viewModelScope.launch {
+            try {
+                reportRepository.resolveReport(reportId)
+                // Actualizar la lista local para reflejar el cambio en la UI
+                val updatedReports = _reports.value.map {
+                    if (it.id == reportId) {
+                        it.copy(status = "Resuelta")
+                    } else {
+                        it
+                    }
+                }
+                _reports.value = updatedReports
+                updateCounts(updatedReports)
+            } catch (e: Exception) {
+                // Manejar el error, por ejemplo, mostrando un snackbar
+            }
+        }
+    }
+
+    private fun updateCounts(reports: List<Report>) {
+        _pendingReportsCount.value = reports.count { it.status == "Pendiente de revisión" }
+        _inReviewReportsCount.value = reports.count { it.status == "En revisión" }
     }
 }

@@ -31,7 +31,7 @@ import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
 import edu.esandpa202502.apptrueq.need.ui.NeedScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun AppNavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,

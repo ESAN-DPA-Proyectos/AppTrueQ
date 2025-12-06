@@ -6,17 +6,11 @@ import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.Report
 import kotlinx.coroutines.tasks.await
 
-/**
- * Repositorio para manejar las operaciones de datos relacionadas con los Reportes.
- */
 class ReportRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val reportsCollection = db.collection("reports")
 
-    /**
-     * Guarda un nuevo reporte en la base de datos con los campos correctos.
-     */
     suspend fun submitReport(
         publicationId: String,
         reportedUserId: String,
@@ -35,30 +29,34 @@ class ReportRepository {
             "createdAt" to Timestamp.now(),
             "status" to "Pendiente de revisión"
         )
-
         reportsCollection.add(data).await()
     }
+    
+    suspend fun resolveReport(reportId: String) {
+        reportsCollection.document(reportId).update("status", "Resuelta").await()
+    }
 
-    /**
-     * Obtiene todos los reportes, mapeando el ID del documento para evitar claves duplicadas.
-     * ESTA ES LA CORRECCIÓN DEFINITIVA.
-     */
     suspend fun getAllReports(): List<Report> {
         return try {
             val querySnapshot = reportsCollection
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            
-            // Mapea los documentos y asigna el ID a cada objeto Report.
+
             querySnapshot.documents.mapNotNull { document ->
-                // Convierte el documento a un objeto Report
-                val report = document.toObject(Report::class.java)
-                // Asigna el ID del documento de Firestore al campo 'id' del objeto.
-                report?.copy(id = document.id)
+                Report(
+                    id = document.id,
+                    publicationId = document.getString("publicationId") ?: "",
+                    reportedUserId = document.getString("reportedUserId") ?: "",
+                    reportedUserName = document.getString("reportedUserName") ?: "",
+                    reportingUserId = document.getString("reporterId") ?: "",
+                    reason = document.getString("reason") ?: "",
+                    description = document.getString("description") ?: "",
+                    status = document.getString("status") ?: "Pendiente de revisión",
+                    createdAt = document.getTimestamp("createdAt")
+                )
             }
         } catch (e: Exception) {
-            // En caso de error, devuelve una lista vacía para no romper la app.
             emptyList()
         }
     }
