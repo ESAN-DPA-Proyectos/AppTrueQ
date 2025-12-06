@@ -75,10 +75,15 @@ class ProposalRepository {
         }
     }
 
+    /**
+     * Obtiene TODAS las propuestas que un usuario ha RECIBIDO, sin importar su estado.
+     * ¡ESTA ES LA FUNCIÓN CORREGIDA!
+     */
     suspend fun getProposalsReceivedForUser(userId: String): List<Proposal> {
         return try {
             val querySnapshot = proposalsCollection
                 .whereEqualTo("publicationOwnerId", userId)
+                // EL FILTRO DE ESTADO HA SIDO ELIMINADO AQUÍ
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
