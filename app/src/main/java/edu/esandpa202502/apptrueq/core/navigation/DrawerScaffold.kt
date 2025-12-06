@@ -50,6 +50,7 @@ fun DrawerScaffold(
             NavigationItem("Login", Icons.Filled.Person, Icons.Outlined.Person, route = Routes.Login.route),
             NavigationItem("Oferta", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Offer.route),
             NavigationItem("Necesidad", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, route = Routes.Need.route),
+            NavigationItem("QR", Icons.Filled.QrCode, Icons.Outlined.QrCode, route = Routes.PublicationQR.route),
             NavigationItem("Historial", Icons.Filled.History, Icons.Outlined.History, route = Routes.TradeHistory.route),
             // SOLUCIÓN: Se pasa el contador de notificaciones al item correspondiente.
             NavigationItem("Notificaciones", Icons.Filled.Notifications, Icons.Outlined.Notifications, badgeCount = unreadCount, route = Routes.Notifications.route),

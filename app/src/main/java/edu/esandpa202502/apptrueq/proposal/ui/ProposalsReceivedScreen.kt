@@ -22,7 +22,6 @@ fun ProposalsReceivedScreen(
     val viewMode by vm.viewMode.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    // --- Lógica de filtrado en la UI ---
     val displayedProposals = remember(state.proposals, searchQuery, viewMode) {
         val allProposals = state.proposals
         
@@ -39,7 +38,8 @@ fun ProposalsReceivedScreen(
                 proposal.publicationTitle.contains(searchQuery, ignoreCase = true) ||
                 proposal.proposerName.contains(searchQuery, ignoreCase = true) ||
                 proposal.proposalText.contains(searchQuery, ignoreCase = true) ||
-                (proposal.offeredItemTitle ?: "").contains(searchQuery, ignoreCase = true)
+                (proposal.offeredItemTitle ?: "").contains(searchQuery, ignoreCase = true) ||
+                (state.offeredPublicationTitles[proposal.offeredPublicationId] ?: "").contains(searchQuery, ignoreCase = true)
             }
         }
     }
@@ -102,6 +102,7 @@ fun ProposalsReceivedScreen(
                 items(displayedProposals, key = { it.id }) { proposal ->
                     ProposalCard(
                         proposal = proposal,
+                        offeredPublicationTitle = state.offeredPublicationTitles[proposal.offeredPublicationId],
                         onAccept = { vm.acceptProposal(proposal) },
                         onReject = { vm.rejectProposal(proposal) }
                     )
@@ -119,6 +120,7 @@ fun ProposalsReceivedScreen(
 @Composable
 private fun ProposalCard(
     proposal: Proposal,
+    offeredPublicationTitle: String?,
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -142,8 +144,10 @@ private fun ProposalCard(
                  Spacer(Modifier.height(8.dp))
                  Text("Ofrece a cambio:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                  proposal.offeredItemTitle?.let { Text("- $it", style = MaterialTheme.typography.bodySmall) }
+                 
                  if (!proposal.offeredPublicationId.isNullOrBlank()) {
-                     Text("- Publicación (ID: ${proposal.offeredPublicationId})", style = MaterialTheme.typography.bodySmall)
+                     val title = offeredPublicationTitle ?: "Publicación (ID: ${proposal.offeredPublicationId})"
+                     Text("- $title", style = MaterialTheme.typography.bodySmall)
                  }
             }
 

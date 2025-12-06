@@ -8,18 +8,18 @@ import edu.esandpa202502.apptrueq.model.Proposal
 import edu.esandpa202502.apptrueq.repository.exchange.TradeRepository
 import edu.esandpa202502.apptrueq.repository.notification.NotificationRepository
 import edu.esandpa202502.apptrueq.repository.proposal.ProposalRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * Estado SOLO para la pantalla de propuestas (HU-07).
- */
 data class ProposalsUiState(
     val isLoading: Boolean = false,
     val proposals: List<Proposal> = emptyList(),
+    val offeredPublicationTitles: Map<String, String> = emptyMap(), // Mapa de ID -> Título
     val error: String? = null
 )
 
@@ -52,10 +52,18 @@ class ProposalsReceivedViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val proposals = proposalRepository.getProposalsReceivedForUser(userId)
+                
+                // Carga los títulos de las publicaciones ofrecidas en paralelo
+                val titleJobs = proposals.mapNotNull { it.offeredPublicationId }.distinct().map {
+                    async { it to proposalRepository.getPublicationTitle(it) }
+                }
+                val titlesMap = titleJobs.awaitAll().toMap().filterValues { it != null } as Map<String, String>
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         proposals = proposals,
+                        offeredPublicationTitles = titlesMap,
                         error = null
                     )
                 }
@@ -89,7 +97,7 @@ class ProposalsReceivedViewModel : ViewModel() {
                     )
                 )
 
-                loadProposalsReceived()
+                loadProposalsReceived() 
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Error al aceptar la propuesta: ${e.message}") }
             }

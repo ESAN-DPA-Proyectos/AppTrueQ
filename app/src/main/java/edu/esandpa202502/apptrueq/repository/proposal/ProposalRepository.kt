@@ -36,6 +36,25 @@ class ProposalRepository {
             throw e
         }
     }
+    
+    suspend fun getPublicationTitle(publicationId: String): String? {
+        return try {
+            var doc = db.collection("offers").document(publicationId).get().await()
+            if (doc.exists()) {
+                return doc.getString("title")
+            }
+
+            doc = db.collection("needs").document(publicationId).get().await()
+            if (doc.exists()) {
+                val text = doc.getString("needText") ?: ""
+                return text.take(40) + if (text.length > 40) "..." else ""
+            }
+            null
+        } catch (e: Exception) {
+            println("Error getting publication title: ${e.message}")
+            null
+        }
+    }
 
     suspend fun getProposalById(proposalId: String): Proposal? {
         return try {

@@ -53,7 +53,7 @@ class PublicationQRViewModel : ViewModel() {
     }
     
     fun trackQrCodeGeneration(publicationId: String) {
-        // TODO: Implementar lógica de tracking si es necesario en el futuro
+        // Lógica de tracking en el futuro
         println("Generando QR para la publicación: $publicationId")
     }
 }

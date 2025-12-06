@@ -21,6 +21,7 @@ import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
 import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
 import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
+import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen // Import añadido
 
 // --- Módulo HU-03: Ofertas y Necesidades ---
 import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
@@ -65,6 +66,11 @@ fun NavGraph(navController: NavHostController) {
             NeedScreen()
         }
 
+        // --- BLOQUE CORREGIDO CUIDADOSAMENTE ---
+        composable(Routes.PublicationQR.route) {
+            MyPublicationsScreen()
+        }
+
         composable(
             route = Routes.PublicationDetail.route,
             arguments = listOf(navArgument("id") { type = NavType.StringType })
@@ -80,7 +86,6 @@ fun NavGraph(navController: NavHostController) {
             TradeHistoryScreen(navController = navController)
         }
 
-        // 🔵 ProposalsReceivedScreen YA NO RECIBE navController, solo el ViewModel interno
         composable(Routes.ProposalsReceived.route) {
             ProposalsReceivedScreen()
         }
@@ -90,7 +95,6 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("tradeId") { type = NavType.StringType })
         ) { backStackEntry ->
             val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            // 🔵 TradeDetailScreen SÍ recibe navController como primer parámetro
             TradeDetailScreen(
                 navController = navController,
                 tradeId = tradeId,
@@ -124,7 +128,6 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        // HU-10: Reporte de usuario desde el menú lateral (sin argumento obligatorio por ahora)
         composable(
             route = Routes.ReportUser.route
         ) {
@@ -133,5 +136,6 @@ fun NavGraph(navController: NavHostController) {
                 reportedUserId = ""
             )
         }
+
     }
 }
