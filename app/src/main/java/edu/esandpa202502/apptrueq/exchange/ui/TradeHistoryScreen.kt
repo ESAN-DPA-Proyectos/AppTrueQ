@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import edu.esandpa202502.apptrueq.model.Trade
-// SOLUCIÓN: Se importa el ViewModel DEDICADO y CORRECTO para esta pantalla.
 import edu.esandpa202502.apptrueq.exchange.viewmodel.TradeHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -25,13 +24,13 @@ import java.util.TimeZone
 @Composable
 fun TradeHistoryScreen(
     navController: NavController,
-    // SOLUCIÓN: Se utiliza su propio ViewModel, `TradeHistoryViewModel`.
     viewModel: TradeHistoryViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedStatus by viewModel.statusFilter.collectAsState()
     
-    val statusOptions = listOf("Todos", "Aceptado", "Rechazado", "Cancelado", "Propuesto", "Completado")
+    // SOLUCIÓN: Se corrige la lista de filtros disponibles.
+    val statusOptions = listOf("Todos", "Aceptado", "Rechazado")
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Historial de Trueques") }) }
