@@ -9,8 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import edu.esandpa202502.apptrueq.core.navigation.AppNavGraph
 import edu.esandpa202502.apptrueq.core.navigation.DrawerScaffold
-import edu.esandpa202502.apptrueq.core.navigation.NavGraph
 import edu.esandpa202502.apptrueq.ui.theme.AppTrueQTheme
 
 /**
@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
 
                     // Estructura principal con Drawer + NavGraph
                     DrawerScaffold(navController = navController) {
-                        NavGraph(navController = navController)
+                        AppNavGraph(navController = navController)
                     }
                 }
             }

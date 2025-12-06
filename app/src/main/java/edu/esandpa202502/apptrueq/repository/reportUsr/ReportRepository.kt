@@ -6,9 +6,6 @@ import com.google.firebase.firestore.Query
 import edu.esandpa202502.apptrueq.model.Report
 import kotlinx.coroutines.tasks.await
 
-/**
- * Repositorio para manejar las operaciones de datos relacionadas con los Reportes.
- */
 class ReportRepository {
 
     private val db = FirebaseFirestore.getInstance()
@@ -35,9 +32,13 @@ class ReportRepository {
             "createdAt" to Timestamp.now(),
             "status" to "Pendiente de revisión"
         )
-
         reportsCollection.add(data).await()
     }
+    
+    suspend fun resolveReport(reportId: String) {
+        reportsCollection.document(reportId).update("status", "Resuelta").await()
+    }
+
 
     /**
      * Obtiene todos los reportes, mapeando el ID del documento para evitar claves duplicadas.

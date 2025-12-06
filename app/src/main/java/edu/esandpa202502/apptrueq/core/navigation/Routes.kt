@@ -1,171 +1,59 @@
 package edu.esandpa202502.apptrueq.core.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+// Todas las rutas de la app se centralizan aquí.
+sealed class Routes(val route: String) {
 
-// --- Módulos principales ---
-import edu.esandpa202502.apptrueq.auth.ui.ForgotPasswordScreen
-import edu.esandpa202502.apptrueq.dashboard.ui.DashboardScreen
-import edu.esandpa202502.apptrueq.auth.ui.LoginScreen
-import edu.esandpa202502.apptrueq.auth.ui.Logout
-import edu.esandpa202502.apptrueq.auth.ui.RegisterScreen
-import edu.esandpa202502.apptrueq.explore.ui.ExploreScreen
-import edu.esandpa202502.apptrueq.explore.ui.PublicationDetailScreen
-import edu.esandpa202502.apptrueq.proposal.ui.ProposalsReceivedScreen
-import edu.esandpa202502.apptrueq.exchange.ui.TradeHistoryScreen
-import edu.esandpa202502.apptrueq.exchange.ui.TradeDetailScreen
-import edu.esandpa202502.apptrueq.moderation.ui.DenunciaDetailScreen
-import edu.esandpa202502.apptrueq.moderation.ui.DenunciasScreen
-import edu.esandpa202502.apptrueq.moderation.ui.ModerationScreen
-import edu.esandpa202502.apptrueq.notification.ui.NotificationsScreen
-import edu.esandpa202502.apptrueq.notification.ui.NotificationDetailScreen
-import edu.esandpa202502.apptrueq.reportUsr.ui.ReportUserScreen
-import edu.esandpa202502.apptrueq.publicationQR.ui.MyPublicationsScreen
+    // ---- RUTAS SIN ARGUMENTOS ----
+    object Login : Routes("login")
+    object Register : Routes("register")
+    object ForgotPassword : Routes("forgot_password")
+    object Logout : Routes("logout")
+    object Dashboard : Routes("dashboard")
+    object Explore : Routes("explore")
+    object TradeHistory : Routes("trade_history")
+    object ProposalsReceived : Routes("proposals_received")
+    object Notifications : Routes("notifications")
+    object Offer : Routes("offer")
+    object Need : Routes("need")
+    object ModerationPanel : Routes("moderation_panel")
+    object Denuncias : Routes("denuncias")
+    object PublicationQR : Routes("publication_qr")
 
-// --- Módulo HU-03: Ofertas y Necesidades ---
-import edu.esandpa202502.apptrueq.offer.ui.OfferScreen
-import edu.esandpa202502.apptrueq.need.ui.NeedScreen
+    // ---- RUTAS CON ARGUMENTOS ----
 
-@Composable
-fun NavGraph(navController: NavHostController) {
+    // HU-10: Reportar usuario / publicación
+    object ReportUser :
+        Routes("reportUsr_user/{publicationId}/{reportedUserId}/{reportedUserName}") {
 
-    NavHost(
-        navController = navController,
-        startDestination = Routes.Dashboard.route
-    ) {
-        composable(Routes.Dashboard.route) {
-            DashboardScreen(navController = navController)
-        }
+        fun createRoute(
+            publicationId: String,
+            reportedUserId: String,
+            reportedUserName: String
+        ): String = "reportUsr_user/$publicationId/$reportedUserId/$reportedUserName"
+    }
 
-        composable(Routes.Login.route) {
-            LoginScreen(navController = navController)
-        }
+    // Detalle de publicación (Explore)
+    object PublicationDetail : Routes("publication_detail/{id}") {
+        fun createRoute(id: String) = "publication_detail/$id"
+    }
 
-        composable(Routes.Register.route) {
-            RegisterScreen(navController = navController)
-        }
+    // Detalle de trueque (Historial)
+    object TradeDetail : Routes("trade_detail/{tradeId}") {
+        fun createRoute(tradeId: String) = "trade_detail/$tradeId"
+    }
 
-        composable(Routes.ForgotPassword.route) {
-            ForgotPasswordScreen(navController = navController)
-        }
+    // Detalle de notificación
+    object NotificationDetail :
+        Routes("notification_detail/{notificationId}/{referenceId}") {
 
-        composable(Routes.Logout.route) {
-            Logout(navController = navController)
-        }
+        fun createRoute(
+            notificationId: String,
+            referenceId: String
+        ) = "notification_detail/$notificationId/$referenceId"
+    }
 
-        composable(Routes.Explore.route) {
-            ExploreScreen(navController = navController)
-        }
-
-        composable(Routes.Offer.route) {
-            OfferScreen()
-        }
-
-        composable(Routes.Need.route) {
-            NeedScreen()
-        }
-
-        // HU-03: QR / Mis Publicaciones
-        composable(Routes.PublicationQR.route) {
-            MyPublicationsScreen()
-        }
-
-        composable(
-            route = Routes.PublicationDetail.route,
-            arguments = listOf(
-                navArgument("id") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val publicationId = backStackEntry.arguments?.getString("id") ?: ""
-            PublicationDetailScreen(
-                navController = navController,
-                publicationId = publicationId
-            )
-        }
-
-        composable(Routes.TradeHistory.route) {
-            TradeHistoryScreen(navController = navController)
-        }
-
-        composable(Routes.ProposalsReceived.route) {
-            ProposalsReceivedScreen()
-        }
-
-        composable(
-            route = Routes.TradeDetail.route,
-            arguments = listOf(
-                navArgument("tradeId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val tradeId = backStackEntry.arguments?.getString("tradeId") ?: ""
-            TradeDetailScreen(
-                navController = navController,
-                tradeId = tradeId,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Routes.Notifications.route) {
-            NotificationsScreen(navController = navController)
-        }
-
-        composable(
-            route = Routes.NotificationDetail.route,
-            arguments = listOf(
-                navArgument("notificationId") { type = NavType.StringType; nullable = true },
-                navArgument("referenceId") { type = NavType.StringType; nullable = true }
-            )
-        ) { backStackEntry ->
-            val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
-            val referenceId = backStackEntry.arguments?.getString("referenceId") ?: ""
-            NotificationDetailScreen(
-                navController = navController,
-                notificationId = notificationId,
-                referenceId = referenceId
-            )
-        }
-
-        // Reportar usuario (HU-10) con los 3 argumentos
-        composable(
-            route = Routes.ReportUser.route,
-            arguments = listOf(
-                navArgument("publicationId") { type = NavType.StringType },
-                navArgument("reportedUserId") { type = NavType.StringType },
-                navArgument("reportedUserName") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val publicationId = backStackEntry.arguments?.getString("publicationId") ?: ""
-            val reportedUserId = backStackEntry.arguments?.getString("reportedUserId") ?: ""
-            val reportedUserName = backStackEntry.arguments?.getString("reportedUserName") ?: ""
-            ReportUserScreen(
-                navController = navController,
-                publicationId = publicationId,
-                reportedUserId = reportedUserId,
-                reportedUserName = reportedUserName
-            )
-        }
-
-        // Panel de moderación (HU-11)
-        composable(Routes.ModerationPanel.route) {
-            ModerationScreen(navController = navController)
-        }
-
-        composable(Routes.Denuncias.route) {
-            DenunciasScreen(navController = navController)
-        }
-
-        composable(
-            route = Routes.DenunciaDetail.route,
-            arguments = listOf(
-                navArgument("reportId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
-            DenunciaDetailScreen(reportId = reportId)
-        }
+    // Detalle de denuncia (HU-11)
+    object DenunciaDetail : Routes("denuncia_detail/{reportId}") {
+        fun createRoute(reportId: String) = "denuncia_detail/$reportId"
     }
 }

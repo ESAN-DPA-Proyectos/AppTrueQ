@@ -29,8 +29,44 @@ class ModerationViewModel : ViewModel() {
         viewModelScope.launch {
             val allReports = reportRepository.getAllReports()
             _reports.value = allReports
-            _pendingReportsCount.value = allReports.count { it.status == "Pendiente" }
-            _inReviewReportsCount.value = allReports.count { it.status == "En revisión" }
+            updateCounts(allReports)
         }
+    }
+
+    /**
+     * Marca una denuncia como resuelta en el repositorio
+     * y actualiza el estado local para reflejar el cambio en la UI.
+     */
+    fun resolveReport(reportId: String) {
+        viewModelScope.launch {
+            try {
+                // Se asume que el repositorio implementa este método
+                reportRepository.resolveReport(reportId)
+
+                // Actualizar la lista local para reflejar el cambio en la UI
+                val updatedReports = _reports.value.map { report ->
+                    if (report.id == reportId) {
+                        report.copy(status = "Resuelta")
+                    } else {
+                        report
+                    }
+                }
+                _reports.value = updatedReports
+                updateCounts(updatedReports)
+            } catch (e: Exception) {
+                // TODO: Manejar el error (ej. mostrar Snackbar o loguear)
+            }
+        }
+    }
+
+    /**
+     * Recalcula los contadores de denuncias por estado.
+     * Debe estar alineado con los valores que usas en ReportStatus / DenunciasScreen.
+     */
+    private fun updateCounts(reports: List<Report>) {
+        _pendingReportsCount.value =
+            reports.count { it.status == "Pendiente de revisión" }
+        _inReviewReportsCount.value =
+            reports.count { it.status == "En revisión" }
     }
 }

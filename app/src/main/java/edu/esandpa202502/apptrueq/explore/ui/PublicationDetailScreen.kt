@@ -10,7 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,8 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -35,6 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
@@ -77,11 +76,23 @@ fun PublicationDetailScreen(
                 },
                 actions = {
                     val publication = uiState.publication
-                    if (currentUser != null && publication != null && publication.userId != currentUser.uid) {
-                        // SOLUCIÓN: Componente personalizado para el botón de reportar.
+                    if (currentUser != null &&
+                        publication != null &&
+                        publication.userId != currentUser.uid
+                    ) {
+                        // Botón personalizado para "Reportar usuario"
                         Column(
                             modifier = Modifier
-                                .clickable { navController.navigate(Routes.ReportUser.createRoute(publication.userId, publication.id)) }
+                                .clickable {
+                                    navController.navigate(
+                                        Routes.ReportUser.createRoute(
+                                            publicationId = publication.id,
+                                            reportedUserId = publication.userId,
+                                            reportedUserName = uiState.publicationOwnerName
+                                                ?: "Usuario Desconocido"
+                                        )
+                                    )
+                                }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
@@ -89,7 +100,10 @@ fun PublicationDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
+                                    .background(
+                                        MaterialTheme.colorScheme.errorContainer,
+                                        CircleShape
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -113,7 +127,10 @@ fun PublicationDetailScreen(
         },
         floatingActionButton = {
             val publicationOwnerId = uiState.publication?.userId
-            if (currentUser != null && publicationOwnerId != null && publicationOwnerId != currentUser.uid) {
+            if (currentUser != null &&
+                publicationOwnerId != null &&
+                publicationOwnerId != currentUser.uid
+            ) {
                 ExtendedFloatingActionButton(
                     onClick = { showProposalDialog.value = true },
                     icon = { Icon(Icons.Filled.SwapHoriz, "Proponer Trueque") },
@@ -163,13 +180,20 @@ fun PublicationDetailScreen(
                                 contentScale = ContentScale.Crop
                             )
                         }
-                        Spacer(Modifier.height(16.dp))
-                        Text(publication.title, style = MaterialTheme.typography.titleLarge)
 
-                        val authorName =  uiState.publicationOwnerName ?: "Usuario Desconocido"
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            text = publication.title,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+
+                        val authorName = uiState.publicationOwnerName ?: "Usuario Desconocido"
                         val formattedDate = remember(publication.date) {
                             publication.date?.let {
-                                SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE")).format(it)
+                                SimpleDateFormat(
+                                    "dd MMM yyyy, HH:mm",
+                                    Locale.forLanguageTag("es-PE")
+                                ).format(it)
                             } ?: "Fecha no disponible"
                         }
 
@@ -181,7 +205,7 @@ fun PublicationDetailScreen(
 
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            publication.description,
+                            text = publication.description,
                             style = MaterialTheme.typography.bodyLarge
                         )
 
