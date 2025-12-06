@@ -17,6 +17,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,16 +50,24 @@ object ReportStatus {
 
 @Composable
 fun DenunciasScreen(
-    navController: NavController, 
+    navController: NavController,
     moderationViewModel: ModerationViewModel = viewModel(factory = ModerationViewModelFactory())
 ) {
     val reports by moderationViewModel.reports.collectAsState()
-    DenunciasScreenContent(navController = navController, reports = reports, viewModel = moderationViewModel)
+    DenunciasScreenContent(
+        navController = navController,
+        reports = reports,
+        viewModel = moderationViewModel
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DenunciasScreenContent(navController: NavController, reports: List<Report>, viewModel: ModerationViewModel) {
+private fun DenunciasScreenContent(
+    navController: NavController,
+    reports: List<Report>,
+    viewModel: ModerationViewModel
+) {
     var selectedStatus by remember { mutableStateOf("Todas") }
 
     val filteredReports = if (selectedStatus == "Todas") {
@@ -68,7 +77,7 @@ private fun DenunciasScreenContent(navController: NavController, reports: List<R
     }
 
     Scaffold(
-        topBar = { /* TODO: Add TopAppBar */ }
+        topBar = { /* Podrías agregar un TopAppBar si lo necesitas */ }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -77,13 +86,19 @@ private fun DenunciasScreenContent(navController: NavController, reports: List<R
                 .padding(16.dp)
         ) {
             Text("Denuncias recibidas", style = MaterialTheme.typography.titleLarge)
+
             ReportFilter(
                 selectedStatus = selectedStatus,
                 onStatusSelected = { newStatus -> selectedStatus = newStatus }
             )
+
             LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
                 items(filteredReports, key = { it.id }) { report ->
-                    ReportItem(navController = navController, report = report, viewModel = viewModel)
+                    ReportItem(
+                        navController = navController,
+                        report = report,
+                        viewModel = viewModel
+                    )
                 }
             }
         }
@@ -92,9 +107,17 @@ private fun DenunciasScreenContent(navController: NavController, reports: List<R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> Unit) {
+private fun ReportFilter(
+    selectedStatus: String,
+    onStatusSelected: (String) -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
-    val statuses = listOf("Todas", ReportStatus.PENDING, ReportStatus.IN_REVIEW, ReportStatus.RESOLVED)
+    val statuses = listOf(
+        "Todas",
+        ReportStatus.PENDING,
+        ReportStatus.IN_REVIEW,
+        ReportStatus.RESOLVED
+    )
 
     ExposedDropdownMenuBox(
         expanded = isExpanded,
@@ -105,9 +128,14 @@ private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> U
             value = selectedStatus,
             onValueChange = {},
             readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor()
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
         )
+
         ExposedDropdownMenu(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
@@ -127,8 +155,14 @@ private fun ReportFilter(selectedStatus: String, onStatusSelected: (String) -> U
 }
 
 @Composable
-private fun ReportItem(navController: NavController, report: Report, viewModel: ModerationViewModel) {
-    val dateFormatter = remember { SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()) }
+private fun ReportItem(
+    navController: NavController,
+    report: Report,
+    viewModel: ModerationViewModel
+) {
+    val dateFormatter = remember {
+        SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+    }
 
     Card(
         modifier = Modifier
@@ -137,13 +171,18 @@ private fun ReportItem(navController: NavController, report: Report, viewModel: 
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "RPT${report.id.take(6).uppercase()}", fontWeight = FontWeight.Bold)
+            Text(
+                text = "RPT${report.id.take(6).uppercase()}",
+                fontWeight = FontWeight.Bold
+            )
             Text(text = "Denunciado: ${report.reportedUserName}")
             Text(text = "Denunciante: ${report.reportingUserId}")
             Text(text = "Motivo: ${report.reason}")
+
             report.createdAt?.let {
                 Text(text = "Fecha: ${dateFormatter.format(it.toDate())}")
             }
+
             val displayStatus = when (report.status) {
                 ReportStatus.PENDING -> "Pendiente"
                 else -> report.status
@@ -156,11 +195,17 @@ private fun ReportItem(navController: NavController, report: Report, viewModel: 
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                Button(onClick = { navController.navigate(Routes.PublicationDetail.createRoute(report.publicationId)) }) {
+                Button(
+                    onClick = {
+                        navController.navigate(
+                            Routes.PublicationDetail.createRoute(report.publicationId)
+                        )
+                    }
+                ) {
                     Text("Revisar")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = { viewModel.resolveReport(report.id) }) { // CORREGIDO
+                Button(onClick = { viewModel.resolveReport(report.id) }) {
                     Text("Resolver")
                 }
             }
@@ -172,8 +217,12 @@ private fun ReportItem(navController: NavController, report: Report, viewModel: 
 @Composable
 private fun DenunciasScreenPreview() {
     MaterialTheme {
-        // Tuve que improvisar un viewModel para la preview, ya que ahora es necesario.
-        val viewModel: ModerationViewModel = viewModel(factory = ModerationViewModelFactory())
-        DenunciasScreenContent(navController = rememberNavController(), reports = emptyList(), viewModel = viewModel)
+        val viewModel: ModerationViewModel =
+            viewModel(factory = ModerationViewModelFactory())
+        DenunciasScreenContent(
+            navController = rememberNavController(),
+            reports = emptyList(),
+            viewModel = viewModel
+        )
     }
 }
