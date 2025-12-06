@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import edu.esandpa202502.apptrueq.notification.viewmodel.SharedViewModel
+import edu.esandpa202502.apptrueq.notification.viewmodel.ShareViewModel
 import kotlinx.coroutines.launch
 
 data class NavigationItem(
@@ -50,7 +50,7 @@ data class NavigationItem(
 @Composable
 fun DrawerScaffold(
     navController: NavController,
-    sharedViewModel: SharedViewModel = viewModel(),
+    sharedViewModel: ShareViewModel = viewModel(),
     content: @Composable () -> Unit
 ) {
     val drawerState = androidx.compose.material3.rememberDrawerState(
@@ -58,10 +58,8 @@ fun DrawerScaffold(
     )
     val scope = rememberCoroutineScope()
 
-    // Contador de notificaciones no leídas (versión main)
     val unreadCount by sharedViewModel.unreadNotificationCount.collectAsState()
 
-    // Lista de items combinando HU-11 + main
     val items = remember(unreadCount) {
         listOf(
             NavigationItem(
@@ -84,13 +82,13 @@ fun DrawerScaffold(
             ),
             NavigationItem(
                 "Oferta",
-                Icons.Filled.ShoppingCart,        // icono de HU-11
+                Icons.Filled.ShoppingCart, 
                 Icons.Outlined.ShoppingCart,
                 route = Routes.Offer.route
             ),
             NavigationItem(
                 "Necesidad",
-                Icons.AutoMirrored.Filled.Help,                // icono de HU-11
+                Icons.AutoMirrored.Filled.Help, 
                 Icons.AutoMirrored.Outlined.Help,
                 route = Routes.Need.route
             ),
@@ -98,7 +96,7 @@ fun DrawerScaffold(
                 "QR",
                 Icons.Filled.QrCode,
                 Icons.Outlined.QrCode,
-                route = Routes.PublicationQR.route   // asumiendo que ya tienes esta ruta
+                route = Routes.PublicationQR.route
             ),
             NavigationItem(
                 "Historial",
@@ -110,14 +108,14 @@ fun DrawerScaffold(
                 "Notificaciones",
                 Icons.Filled.Notifications,
                 Icons.Outlined.Notifications,
-                badgeCount = unreadCount,           // badge dinámico
+                badgeCount = unreadCount,
                 route = Routes.Notifications.route
             ),
             NavigationItem(
                 "Reportar Usuario",
                 Icons.Filled.Report,
                 Icons.Outlined.Report,
-                route = Routes.ReportUser.route     // OJO: esta ruta requiere args, ver nota abajo
+                route = Routes.ReportUser.route
             ),
             NavigationItem(
                 "Moderador",
@@ -158,7 +156,6 @@ fun DrawerScaffold(
                                 }
                             },
                             icon = {
-                                // Ítem de notificaciones con Badge (versión main)
                                 if (item.route == Routes.Notifications.route) {
                                     BadgedBox(
                                         badge = {
@@ -197,7 +194,6 @@ fun DrawerScaffold(
                         IconButton(onClick = {
                             scope.launch { drawerState.open() }
                         }) {
-                            // Badge en el icono del menú si hay notificaciones (versión main)
                             BadgedBox(
                                 badge = {
                                     if (unreadCount > 0) {
