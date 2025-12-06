@@ -41,7 +41,7 @@ class NotificationViewModel : ViewModel() {
 
     /**
      * Se suscribe al repositorio para obtener las notificaciones del usuario en tiempo real.
-     * Ordena las notificaciones para mostrar primero las más recientes.
+     * La consulta a Firestore ya devuelve las notificaciones ordenadas.
      */
     private fun listenForNotifications() {
         val userId = auth.currentUser?.uid
@@ -58,9 +58,7 @@ class NotificationViewModel : ViewModel() {
                 }
                 .collect { notifications ->
                     // Cada vez que Firestore notifica un cambio, se actualiza la lista en la UI.
-                    // Se ordenan por fecha de creación, mostrando las más nuevas primero.
-                    val sortedNotifications = notifications.sortedByDescending { it.createdAt }
-                    _uiState.update { it.copy(isLoading = false, notifications = sortedNotifications) }
+                    _uiState.update { it.copy(isLoading = false, notifications = notifications) }
                 }
         }
     }
