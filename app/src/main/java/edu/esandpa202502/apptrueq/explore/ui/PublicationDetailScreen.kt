@@ -1,11 +1,15 @@
 package edu.esandpa202502.apptrueq.explore.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,14 +32,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.firebase.auth.FirebaseAuth
 import edu.esandpa202502.apptrueq.R
+import edu.esandpa202502.apptrueq.core.navigation.Routes
 import edu.esandpa202502.apptrueq.proposal.ui.ProposalDialog
 import edu.esandpa202502.apptrueq.proposal.viewmodel.PublicationDetailViewModel
 import edu.esandpa202502.apptrueq.proposal.viewmodel.PublicationDetailViewModelFactory
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,15 +76,35 @@ fun PublicationDetailScreen(
                     }
                 },
                 actions = {
-                    val publicationOwnerId = uiState.publication?.userId
-                    if (publicationOwnerId != null && publicationOwnerId != currentUser?.uid) {
-                        IconButton(onClick = {
-                            // Navega usando una ruta simple (ajusta si tu NavGraph usa otra)
-                            navController.navigate("reportUsr_user/$publicationOwnerId")
-                        }) {
-                            Icon(
-                                Icons.Default.Report,
-                                contentDescription = "Reportar Usuario"
+                    val publication = uiState.publication
+                    if (currentUser != null && publication != null && publication.userId != currentUser.uid) {
+                        // SOLUCIÓN: Componente personalizado para el botón de reportar.
+                        Column(
+                            modifier = Modifier
+                                .clickable { navController.navigate(Routes.ReportUser.createRoute(publication.userId, publication.id)) }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Flag,
+                                    contentDescription = "Reportar Usuario",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Reportar\nUsuario",
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 12.sp
                             )
                         }
                     }
@@ -83,7 +112,8 @@ fun PublicationDetailScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.publication?.userId != currentUser?.uid) {
+            val publicationOwnerId = uiState.publication?.userId
+            if (currentUser != null && publicationOwnerId != null && publicationOwnerId != currentUser.uid) {
                 ExtendedFloatingActionButton(
                     onClick = { showProposalDialog.value = true },
                     icon = { Icon(Icons.Filled.SwapHoriz, "Proponer Trueque") },
@@ -134,14 +164,21 @@ fun PublicationDetailScreen(
                             )
                         }
                         Spacer(Modifier.height(16.dp))
+                        Text(publication.title, style = MaterialTheme.typography.titleLarge)
+
+                        val authorName =  uiState.publicationOwnerName ?: "Usuario Desconocido"
+                        val formattedDate = remember(publication.date) {
+                            publication.date?.let {
+                                SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("es-PE")).format(it)
+                            } ?: "Fecha no disponible"
+                        }
+
                         Text(
-                            publication.title,
-                            style = MaterialTheme.typography.titleLarge
+                            text = "Publicado por: $authorName, el día $formattedDate",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            "Categoría: ${publication.category}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+
                         Spacer(Modifier.height(8.dp))
                         Text(
                             publication.description,
